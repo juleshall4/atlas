@@ -30,7 +30,7 @@ export const guide: { title: string; rows: GuideRow[] }[] = [
         terms: ["caps lock", "capital letters", "capitals", "uppercase", "upper case", "big letters", "lowercase", "small letters", "all caps", "shouting", "numbers", "digits", "stuck", "sticky keys", "modifier"] },
       { title: "Word suggestions", text: "The strip shows words and spelling corrections as you type. Touch a word to type it.",
         terms: ["autocorrect", "auto correct", "spell check", "spellcheck", "misspelled", "correction", "predictions", "predictive text", "next word", "autocomplete", "auto complete", "typo", "mistake", "suggestion bar", "top bar"] },
-      { title: "Delete a word", text: "Push Alt, then push Backspace. You can also use Ctrl and Backspace.",
+      { title: "Delete a word", text: "Push Alt one time, then push Backspace. You can also use Ctrl and Backspace.",
         terms: ["erase", "remove", "clear", "rub out", "back space", "delete whole word", "delete faster", "remove word", "wipe", "control"] },
       { title: "Shortcuts", text: "Push and hold Alt, then push a letter. Z is undo. Y is redo. A selects all text. C is copy. X is cut. V is paste.",
         terms: ["undo", "redo", "copy", "paste", "cut", "select all", "ctrl", "control", "ctrl z", "control z", "keyboard shortcut", "go back", "take back", "clipboard", "hold alt"] },

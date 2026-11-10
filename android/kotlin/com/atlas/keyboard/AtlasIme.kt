@@ -724,9 +724,9 @@ class AtlasIme : InputMethodService() {
         }
         when (event.keyCode) {
             KeyEvent.KEYCODE_DEL -> {
-                // Ctrl or Alt with Backspace deletes the previous word.
-                val alt = modifiers.alt != Modifiers.Level.Off
-                composer.backspace(event.isCtrlPressed || alt)
+                // Alt with Backspace deletes the previous word. Locked Alt is for numbers, so Backspace deletes one character.
+                val alt = modifiers.alt == Modifiers.Level.Once
+                composer.backspace(alt)
                 if (alt) modifiers.consume() else modifiers.useHeld()
             }
             KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER -> { composer.enter(); modifiers.useHeld() }
