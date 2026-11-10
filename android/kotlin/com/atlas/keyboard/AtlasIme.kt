@@ -189,9 +189,11 @@ class AtlasIme : InputMethodService() {
         // keyboard's window. They arrive at the window, not at any view, so catch them there.
         val window = window.window!!
         window.callback = TouchpadWindowCallback(window.callback) { event ->
+            if (event.actionMasked == MotionEvent.ACTION_DOWN) Log.d("AtlasDiag", "window down editing=$editing tp=${touchpad.accepts(event)} dev=${event.device?.name}")
             (editing && touchpad.accepts(event)).also { if (it) motion(event) }
         }
         overlay = TouchpadOverlay(this) { event ->
+            if (event.actionMasked == MotionEvent.ACTION_DOWN) Log.d("AtlasDiag", "overlay down editing=$editing tp=${touchpad.accepts(event)} dev=${event.device?.name}")
             (editing && touchpad.accepts(event)).also { if (it) motion(event) }
         }
         loadEmoji()
@@ -221,6 +223,7 @@ class AtlasIme : InputMethodService() {
     }
 
     override fun onStartInput(info: EditorInfo, restarting: Boolean) {
+        Log.d("AtlasDiag", "startInput ${info.packageName} type=${info.inputType} restarting=$restarting")
         preserveDestinationInput()
         editor.cancelState()
         super.onStartInput(info, restarting)
@@ -275,12 +278,14 @@ class AtlasIme : InputMethodService() {
 
     override fun onWindowShown() {
         super.onWindowShown()
+        Log.d("AtlasDiag", "windowShown editing=$editing")
         // Android draws its hide and switch-keyboard buttons in this bar; the strip has no room for them.
         window.window?.insetsController?.hide(WindowInsets.Type.captionBar())
     }
 
     override fun onWindowHidden() {
         super.onWindowHidden()
+        Log.d("AtlasDiag", "windowHidden editing=$editing")
         // A delayed hide from the previous app arrives just after this field starts. A later hide, or one
         // after you have typed, is the app's own, such as a tap outside the field or a Done key.
         main.removeCallbacks(showStrip)
@@ -301,6 +306,7 @@ class AtlasIme : InputMethodService() {
     }
 
     override fun onFinishInput() {
+        Log.d("AtlasDiag", "finishInput")
         preserveDestinationInput()
         // The old connection is still owned here; only a verified final explicit choice is learned.
         composer.stop(terminal = true)
@@ -334,6 +340,7 @@ class AtlasIme : InputMethodService() {
             if (collapsed && oldStart != oldEnd && !backAtEmptyAnchor
                 || !collapsed && (minOf(newStart, newEnd) > it.anchorStart || maxOf(newStart, newEnd) < it.anchorEnd)) stopSelecting()
         }
+        Log.d("AtlasDiag", "selection $oldStart->$newStart composing=$composingStart..$composingEnd")
         if (editing && composer.selectionChanged(newStart, newEnd)) clearSettlements()
     }
 
@@ -344,12 +351,14 @@ class AtlasIme : InputMethodService() {
 
     /** While the strip is hidden, the touchpad reaches the keyboard through the focused app. */
     override fun onGenericMotionEvent(event: MotionEvent): Boolean {
+        if (event.actionMasked == MotionEvent.ACTION_DOWN) Log.d("AtlasDiag", "generic down editing=$editing tp=${touchpad.accepts(event)}")
         if (!editing || !touchpad.accepts(event)) return super.onGenericMotionEvent(event)
         motion(event)
         return true
     }
 
     private fun motion(event: MotionEvent) {
+        if (touchpad.action(event) != MotionEvent.ACTION_MOVE) Log.d("AtlasDiag", "motion ${touchpad.action(event)} words=${field.words} cursor=${cursor.active}")
         if (!field.words) return
         typedInField = true
         val samples = touchpad.samples(event)
@@ -713,6 +722,7 @@ class AtlasIme : InputMethodService() {
     private fun outcome(outcome: Contact.Outcome) {
         when (outcome) {
             is Contact.Outcome.Swipe -> {
+                Log.d("AtlasDiag", "outcome swipe paging=$stripPaging swipeTyping=$swipeTyping")
                 if (stripPaging) {
                     // Sideways swipes page through the symbols or emoji on the strip. The pages follow the finger.
                     val dx = (outcome.points.last().x - outcome.points.first().x) * 10

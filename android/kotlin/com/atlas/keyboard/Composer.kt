@@ -272,6 +272,7 @@ class Composer(
     }
 
     fun swipe(swipe: Swipe, startedAt: Long, endedAt: Long, metaState: Int) {
+        android.util.Log.d("AtlasDiag", "composer swipe words=${field.words} pending=${pendingInput.size} recognising=$recognising barrier=${barrier?.navigation}/${barrier?.command} draining=$draining scheduled=$drainScheduled")
         if (!field.words) return
         if (!hasPendingInput) {
             invalidate()
@@ -391,8 +392,10 @@ class Composer(
         recognising = true
         recognitionSnapshot = anchor
         words.recognise(path, context, field.learning) { recognition ->
+            android.util.Log.d("AtlasDiag", "recognised ${recognition.words.take(3)} stale=${current != epoch || pendingInput.firstOrNull() !== pending} moved=${snapshot() != anchor}")
             if (current != epoch || pendingInput.firstOrNull() !== pending) return@recognise
             if (snapshot() != anchor) {
+                android.util.Log.d("AtlasDiag", "anchor ${anchor} now ${snapshot()}")
                 reset()
                 return@recognise
             }
@@ -406,7 +409,7 @@ class Composer(
                 }
                 val word = choices.first()
                 val inserted = leadingSpace + word + if (trailingSpace) " " else ""
-                if (!edit(replaced, inserted)) return@recognise
+                if (!edit(replaced, inserted)) { android.util.Log.d("AtlasDiag", "edit failed"); return@recognise }
                 val accepted = snapshot()
                 automaticSpace = accepted.takeIf { trailingSpace }
                 val swiped = Composition.Swiped(word, leadingSpace, trailingSpace, path, context, recognition, pending.endedAt,
