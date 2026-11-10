@@ -18,6 +18,8 @@ export const guide: { title: string; rows: GuideRow[] }[] = [
         terms: ["wrong word", "bad word", "not the word", "different word", "other words", "fix word", "change word", "replace word", "choose", "alternatives", "options", "candidates", "suggestion bar", "top bar"] },
       { title: "Move the cursor", text: "Rest your finger on the space bar until you feel a click. Then move your finger to the left or right.",
         terms: ["cursor control", "arrow keys", "caret", "pointer", "navigate", "go back", "move left", "move right", "edit text", "fix typo", "jump", "position", "hold space", "long press", "slide space", "trackpad"] },
+      { title: "Select text", text: "Move the cursor to a word. Then push the space bar one time to select the word. Keep your finger on the space bar and move it to the left or right to select more words. You can lift your finger and put it on the space bar again to select more. To stop, push the space bar again.",
+        terms: ["select word", "highlight", "mark text", "select more", "selection", "deselect", "unselect", "hold space"] },
     ],
   },
   {

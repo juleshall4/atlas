@@ -44,6 +44,15 @@ class CursorMode {
         return true
     }
 
+    /** Starts cursor mode at once, with no rest, if [sample] is on Space. */
+    fun hold(sample: Sample): Boolean {
+        if (!sample.valid || Layout.keyAt(sample.x, sample.y) != Layout.SPACE) return false
+        state = State.Active
+        landed = sample
+        position = sample
+        return true
+    }
+
     /** The finger left the touchpad; cursor mode waits for it to come back. */
     fun lift() {
         if (state != State.Active) return
@@ -77,15 +86,18 @@ class CursorMode {
      * Letters a second for the current lean at [now], or 0 in the middle. The speed follows [SPEEDS],
      * growing by an even factor between each pair of points, so every bit further feels like a step up:
      * slow and precise just off the middle, and quick by the key beside Space. The range ends at ○ and fn;
-     * holding there or further out builds up to [FASTEST_PER_SECOND] over [RAMP_MILLIS].
+     * holding there or further out builds up to [FASTEST_PER_SECOND] over [RAMP_MILLIS]. With [words], it is
+     * words a second instead, from [WORD_SPEEDS] up to [FASTEST_WORDS_PER_SECOND], since a word is a bigger step.
      */
-    fun speed(now: Long): Float {
+    fun speed(now: Long, words: Boolean = false): Float {
+        val speeds = if (words) WORD_SPEEDS else SPEEDS
+        val fastest = if (words) FASTEST_WORDS_PER_SECOND else FASTEST_PER_SECOND
         val depth = depth()?.second ?: run { edgeSince = null; return 0f }
         val lean = depth.coerceAtMost(MAX_DEPTH)
         var upper = 1
-        while (upper < SPEEDS.size - 1 && lean > SPEEDS[upper].first) upper++
-        val (fromLean, fromSpeed) = SPEEDS[upper - 1]
-        val (toLean, toSpeed) = SPEEDS[upper]
+        while (upper < speeds.size - 1 && lean > speeds[upper].first) upper++
+        val (fromLean, fromSpeed) = speeds[upper - 1]
+        val (toLean, toSpeed) = speeds[upper]
         val reached = fromSpeed * (toSpeed / fromSpeed).pow((lean - fromLean) / (toLean - fromLean))
         if (lean < MAX_DEPTH * AT_EDGE) {
             edgeSince = null
@@ -94,7 +106,7 @@ class CursorMode {
         val since = edgeSince ?: now.also { edgeSince = it }
         val ramp = ((now - since).toFloat() / RAMP_MILLIS).coerceIn(0f, 1f)
         // Eased so the build-up starts gently and settles into full speed.
-        return reached + (FASTEST_PER_SECOND - reached) * ramp * ramp * (3 - 2 * ramp)
+        return reached + (fastest - reached) * ramp * ramp * (3 - 2 * ramp)
     }
 
     fun end() {
@@ -147,5 +159,17 @@ class CursorMode {
             MAX_DEPTH to 28f, // ○ or fn, where holding builds up to full speed
         )
         private const val FASTEST_PER_SECOND = 52f
+        /**
+         * Words a second at each lean, for growing a selection. Slow near the middle, so one word at a time is
+         * easy to stop on, and about a line a second at the edge.
+         */
+        private val WORD_SPEEDS = listOf(
+            0f to .8f,
+            .5f to 1.5f,
+            EDGE_KEYS to 3.5f,
+            EDGE_KEYS + .65f to 5f,
+            MAX_DEPTH to 7f,
+        )
+        private const val FASTEST_WORDS_PER_SECOND = 12f
     }
 }

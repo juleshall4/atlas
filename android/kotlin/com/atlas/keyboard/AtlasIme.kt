@@ -48,14 +48,34 @@ class AtlasIme : InputMethodService() {
     private var cursorPath = ArrayList<Sample>()
     private var cursorControl = true
     private var swipeTyping = true
-    /** When cursor mode last ended; a press on Space just after selects the word at the cursor. */
-    private var cursorEndedAt = Long.MIN_VALUE
-    /** Whether the last cursor mode moved the cursor; only then does a press on Space select a word. */
+    /** Whether this cursor mode moved the cursor; only then does a click on Space select. */
     private var cursorMoved = false
-    /** Space was pressed to select a word, so its repeats and release type nothing. */
-    private var selectingWithSpace = false
-    /** The selection start the app last reported, for apps that don't say where their text sits. */
+    /** Space was clicked in cursor mode, so its repeats and release type nothing. */
+    private var clickingSpace = false
+    /**
+     * Leaning moves nothing until then. The click on Space shifts the finger, and a finger that just landed
+     * is still settling. Neither is a lean.
+     */
+    private var leanAfter = Long.MIN_VALUE
+    /**
+     * Select mode: a click on Space turned it on, and only the next press of Space turns it off. It stays on
+     * when the finger lifts, so a later rest grows the same selection. Space types nothing while it is on.
+     */
+    private var selectMode = false
+    /** The selection the app last reported, for apps that don't say where their text sits. */
     private var lastSelectionStart = -1
+    /** The selection that leaning grows in select mode, once the click has selected the word. */
+    private var selecting: Selection? = null
+    /**
+     * A selection that grows from its anchor, the word that the click on Space selected. It always ends at one
+     * side of the anchor: it grows to the left or to the right of it, never to both sides.
+     */
+    private class Selection(val anchorStart: Int, val anchorEnd: Int) {
+        var start = anchorStart
+        var end = anchorEnd
+        /** The end that moves, where the cursor goes when selecting stops. */
+        val free get() = if (start < anchorStart) start else end
+    }
     private val modifiers = Modifiers()
     private var strip: Strip? = null
     private var emoji: EmojiPages? = null
@@ -125,8 +145,15 @@ class AtlasIme : InputMethodService() {
             if (!cursor.active) return
             val now = SystemClock.uptimeMillis()
             val direction = cursor.direction()
+            if (clickingSpace || now < leanAfter) {
+                // Once settled, a lean counts as fresh and steps at once, as when cursor mode starts.
+                owed = 1f
+                last = now
+                main.postDelayed(this, FRAME_MILLIS)
+                return
+            }
             if (direction == 0) owed = 1f
-            else if (last != 0L) owed += cursor.speed(now) * (now - last) / 1000
+            else if (last != 0L) owed += cursor.speed(now, words = selectMode) * (now - last) / 1000
             if (direction != 0 && owed >= 1f) {
                 owed = (owed - 1f).coerceAtMost(1f)
                 moveCursor(direction)
@@ -209,6 +236,7 @@ class AtlasIme : InputMethodService() {
         main.removeCallbacks(pickKeyboard)
         modifiers.clear()
         deadKeyPending = false
+        lastSelectionStart = info.initialSelStart
         showModifiers()
         composer.liftOffMillis = TypingSettings.liftOffGraceMillis(this)
         tapKeys = TypingSettings.tapKeys(this)
@@ -283,7 +311,8 @@ class AtlasIme : InputMethodService() {
         clearSettlements()
         contact.cancel()
         endCursor()
-        selectingWithSpace = false
+        clickingSpace = false
+        stopSelecting()
         deadKeyPending = false
         overlay.hide()
         super.onFinishInput()
@@ -298,6 +327,13 @@ class AtlasIme : InputMethodService() {
     override fun onUpdateSelection(oldStart: Int, oldEnd: Int, newStart: Int, newEnd: Int, composingStart: Int, composingEnd: Int) {
         super.onUpdateSelection(oldStart, oldEnd, newStart, newEnd, composingStart, composingEnd)
         lastSelectionStart = newStart
+        // Typing over the selection, deleting it, or a touch elsewhere in the text ends select mode.
+        selecting?.let {
+            val collapsed = newStart == newEnd
+            val backAtEmptyAnchor = it.anchorStart == it.anchorEnd && newStart == it.anchorStart
+            if (collapsed && oldStart != oldEnd && !backAtEmptyAnchor
+                || !collapsed && (minOf(newStart, newEnd) > it.anchorStart || maxOf(newStart, newEnd) < it.anchorEnd)) stopSelecting()
+        }
         if (editing && composer.selectionChanged(newStart, newEnd)) clearSettlements()
     }
 
@@ -331,8 +367,20 @@ class AtlasIme : InputMethodService() {
                     stepCursor.resume()
                     return
                 }
-                contact.move(samples.drop(1))
                 endCursor()
+                // Select mode is sticky: a finger on Space grows the selection at once, with no rest.
+                if (selectMode && cursorControl && !stripPaging && cursor.hold(first)) {
+                    contact.cancelActive()
+                    cursor.move(samples.drop(1))
+                    cursorPath = ArrayList(samples.filter { it.valid })
+                    Trace.touch(cursorPath, false)
+                    cursorMoved = false
+                    leanAfter = first.time + LAND_SETTLE_MILLIS
+                    stepCursor.reset()
+                    stepCursor.run()
+                    return
+                }
+                contact.move(samples.drop(1))
                 // Alt and Sym turn swipes into strip pages, so the cursor waits until they are off.
                 // Cursor mode waits until typing ends. The finger that pushed Space cannot start it until it lifts.
                 if (cursorControl && !stripPaging && contact.canStartCursor && cursor.down(first)) {
@@ -362,13 +410,12 @@ class AtlasIme : InputMethodService() {
             }
             MotionEvent.ACTION_UP -> {
                 if (cursor.active) {
-                    cursorEndedAt = SystemClock.uptimeMillis()
                     main.removeCallbacks(stepCursor)
                     cursor.lift()
-                    val slips = composer.liftOffMillis > 0
                     // Through a slip the path stays open, so a finger that comes back carries on drawing it.
-                    traceCursor(samples, ended = !slips)
-                    if (slips) main.postDelayed(endSlippedCursor, composer.liftOffMillis.toLong()) else endCursor()
+                    traceCursor(samples, ended = false)
+                    // A click on Space lifts the finger off the touchpad. While Space is down, cursor mode waits.
+                    if (!clickingSpace) main.postDelayed(endSlippedCursor, liftGraceMillis)
                     return
                 }
                 endCursor()
@@ -418,7 +465,18 @@ class AtlasIme : InputMethodService() {
         cursor.end()
     }
 
-    /** Sends one arrow key press, in order with the rest of the typing. */
+    private fun stopSelecting() {
+        selectMode = false
+        selecting = null
+    }
+
+    /**
+     * How long cursor mode waits for a finger that lifted. A click on Space lifts the finger before or after
+     * the key goes down, so cursor mode always waits at least long enough for the click.
+     */
+    private val liftGraceMillis get() = maxOf(composer.liftOffMillis.toLong(), CLICK_GRACE_MILLIS)
+
+    /** Sends one arrow key press, or grows the selection by a word, in order with the rest of the typing. */
     private fun moveCursor(direction: Int) {
         if (direction == 0) return
         cursorMoved = true
@@ -427,6 +485,8 @@ class AtlasIme : InputMethodService() {
         val arrow = KeyEvent(time, time, KeyEvent.ACTION_DOWN, code, 0, 0, KeyCharacterMap.VIRTUAL_KEYBOARD, 0,
             KeyEvent.FLAG_SOFT_KEYBOARD or KeyEvent.FLAG_KEEP_TOUCH_MODE, InputDevice.SOURCE_KEYBOARD)
         enqueue {
+            // The click that starts selecting may still wait in the queue, so decide here.
+            selecting?.let { grow(it, direction); return@enqueue }
             // A cursor at the start or end of the text cannot move, so it stays quiet. An app that does not
             // answer still gets the pulse.
             val connection = currentInputConnection
@@ -437,27 +497,95 @@ class AtlasIme : InputMethodService() {
     }
 
     /**
-     * Pressing Space presses the finger into the touchpad, which lifts it, so either may arrive first. A cursor
-     * mode that did not move the cursor was not wanted, so Space types a space.
+     * Moves the free end of the selection by a whole word. Leaning away from the anchor grows the selection to
+     * the far side of the next word. Leaning back shrinks it to the near side of the next word in, and never
+     * past the anchor. At the anchor, the lean picks the side.
      */
-    private fun selectsWord(event: KeyEvent) = event.keyCode == KeyEvent.KEYCODE_SPACE && event.repeatCount == 0 && cursorMoved
-        && (cursor.active || cursor.lifted || event.eventTime - cursorEndedAt in 0..SELECT_AFTER_CURSOR_MILLIS)
+    private fun grow(selection: Selection, direction: Int) {
+        val connection = currentInputConnection ?: return
+        val movingStart = when {
+            selection.start < selection.anchorStart -> true
+            selection.end > selection.anchorEnd -> false
+            else -> direction < 0
+        }
+        val passed = when {
+            movingStart && direction < 0 -> connection.getTextBeforeCursor(WORD_REACH, 0)?.let { wordAtEnd(it) }
+            !movingStart && direction > 0 -> connection.getTextAfterCursor(WORD_REACH, 0)?.let { wordAtStart(it) }
+            movingStart -> connection.getSelectedText(0)?.let { wordAtStart(it, wordFirst = true) }
+            else -> connection.getSelectedText(0)?.let { wordAtEnd(it, wordFirst = true) }
+        } ?: 0
+        val start = if (movingStart) (selection.start + direction * passed).coerceAtMost(selection.anchorStart) else selection.start
+        val end = if (movingStart) selection.end else (selection.end + direction * passed).coerceAtLeast(selection.anchorEnd)
+        // The selection stops at the ends of the text.
+        if (passed == 0 || start < 0 || (start == selection.start && end == selection.end)) return
+        composer.command(destructive = false, fieldLocal = true) { connection.setSelection(start, end) }
+        selection.start = start
+        selection.end = end
+        if (Haptics.enabled(this)) haptics.pulse()
+    }
 
-    /** Selects the word at the cursor, or does nothing between words. */
+    /**
+     * How many characters from the start of [text] make up the gap and then the word after it. With
+     * [wordFirst], the word comes first and then the gap, so the end lands at the start of the next word.
+     */
+    private fun wordAtStart(text: CharSequence, wordFirst: Boolean = false): Int {
+        var at = 0
+        for (inWord in if (wordFirst) listOf(true, false) else listOf(false, true))
+            while (at < text.length && isWordCharacter(text[at]) == inWord) at++
+        return at
+    }
+
+    /** As [wordAtStart], from the end of [text] back. */
+    private fun wordAtEnd(text: CharSequence, wordFirst: Boolean = false): Int {
+        var at = text.length
+        for (inWord in if (wordFirst) listOf(true, false) else listOf(false, true))
+            while (at > 0 && isWordCharacter(text[at - 1]) == inWord) at--
+        return text.length - at
+    }
+
+    /**
+     * Whether this Space press turns select mode on or off. In select mode, every press does. Otherwise only a
+     * press in cursor mode does, after the cursor moved: a cursor mode that did not move it was not wanted, so
+     * Space types a space. Pressing Space presses the finger into the touchpad, which lifts it, so either may
+     * arrive first.
+     */
+    private fun clicksSelectMode(event: KeyEvent) = event.keyCode == KeyEvent.KEYCODE_SPACE && event.repeatCount == 0
+        && (selectMode || (cursor.active || cursor.lifted) && cursorMoved)
+
+    /** Turns select mode on at the word at the cursor, or off with the cursor at the free end. */
+    private fun clickSpace() {
+        if (Haptics.enabled(this)) haptics.click()
+        if (!selectMode) {
+            selectMode = true
+            enqueue { selectWord() }
+            return
+        }
+        val selection = selecting
+        stopSelecting()
+        if (selection != null) enqueue {
+            composer.command(destructive = false, fieldLocal = true) {
+                currentInputConnection?.setSelection(selection.free, selection.free) ?: false
+            }
+        }
+    }
+
+    /**
+     * Selects the word at the cursor, which becomes the anchor that leaning grows from. Between words, the
+     * anchor is the cursor itself, and the first lean selects the next word on that side.
+     */
     private fun selectWord() {
         composer.command(destructive = false, fieldLocal = true) {
-            val connection = currentInputConnection ?: return@command false
+            val connection = currentInputConnection ?: return@command false.also { stopSelecting() }
             connection.finishComposingText()
-            val around = connection.getSurroundingText(WORD_REACH, WORD_REACH, 0) ?: return@command false
+            val around = connection.getSurroundingText(WORD_REACH, WORD_REACH, 0) ?: return@command false.also { stopSelecting() }
             val text = around.text
-            val cursorAt = around.selectionStart
-            var start = cursorAt
+            var start = around.selectionStart
             var end = around.selectionEnd
             while (start > 0 && isWordCharacter(text[start - 1])) start--
             while (end < text.length && isWordCharacter(text[end])) end++
-            if (start == end) return@command true
-            val offset = fieldOffset(connection, around) ?: return@command false
-            connection.setSelection(offset + start, offset + end)
+            val offset = fieldOffset(connection, around) ?: return@command false.also { stopSelecting() }
+            selecting = Selection(offset + start, offset + end)
+            start == end || connection.setSelection(offset + start, offset + end)
         }
     }
 
@@ -605,6 +733,8 @@ class AtlasIme : InputMethodService() {
             }
             is Contact.Outcome.Tap -> {
                 if (!isTapKey(outcome.key)) return
+                // In select mode, only a press of Space acts. A tap must not type over the selection.
+                if (outcome.key == Layout.SPACE && selectMode) return
                 val key = if (outcome.key == Layout.SPACE) " " else outcome.key
                 haptics.tap()
                 if (key == " ") {
@@ -635,20 +765,30 @@ class AtlasIme : InputMethodService() {
         if (keyCode != KeyEvent.KEYCODE_SYM) main.removeCallbacks(pickKeyboard)
         else if (event.repeatCount == 0) main.postDelayed(pickKeyboard, ViewConfiguration.getLongPressTimeout().toLong())
         contact.key(keyCode, true, event.eventTime)
-        if (keyCode == KeyEvent.KEYCODE_SPACE && selectingWithSpace) return true
-        if (selectsWord(event)) {
-            endCursor()
-            cursorEndedAt = Long.MIN_VALUE
-            selectingWithSpace = true
+        if (keyCode == KeyEvent.KEYCODE_SPACE && clickingSpace) return true
+        if (clicksSelectMode(event)) {
+            // Cursor mode carries on through the click, for the finger that stays on Space.
+            main.removeCallbacks(endSlippedCursor)
+            clickingSpace = true
             consumedKeys += keyCode
-            enqueue { selectWord() }
+            clickSpace()
             return true
         }
+        // Any other key ends select mode. The selection stays, to type over, delete or copy.
+        if (selectMode && !Modifiers.isModifier(keyCode) && keyCode != KeyEvent.KEYCODE_SPACE) stopSelecting()
         // Any other key press means the finger was pressing, not resting on the touchpad.
         endCursor()
+        if (press(event)) {
+            consumedKeys += keyCode
+            return true
+        }
+        return super.onKeyDown(keyCode, event)
+    }
+
+    /** Types or forwards a key, after any input still waiting. */
+    private fun press(event: KeyEvent): Boolean {
         if (pendingInput.isNotEmpty()) {
             val captured = KeyEvent(event)
-            consumedKeys += keyCode
             enqueue(captured) {
                 key(captured)
                 showModifiers()
@@ -656,9 +796,8 @@ class AtlasIme : InputMethodService() {
             return true
         }
         val handled = key(event)
-        if (handled) consumedKeys += keyCode
         showModifiers()
-        return handled || super.onKeyDown(keyCode, event)
+        return handled
     }
 
     override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean {
@@ -674,8 +813,11 @@ class AtlasIme : InputMethodService() {
         }
         if (touchpad.isGestureKey(event)) return true
         contact.key(keyCode, false, event.eventTime)
-        if (keyCode == KeyEvent.KEYCODE_SPACE && selectingWithSpace) {
-            selectingWithSpace = false
+        if (keyCode == KeyEvent.KEYCODE_SPACE && clickingSpace) {
+            clickingSpace = false
+            leanAfter = SystemClock.uptimeMillis() + CLICK_SETTLE_MILLIS
+            // The finger came off with the click. If it does not come back to Space soon, cursor mode ends.
+            if (cursor.lifted) main.postDelayed(endSlippedCursor, liftGraceMillis)
             consumedKeys.remove(keyCode)
             return true
         }
@@ -839,7 +981,12 @@ class AtlasIme : InputMethodService() {
         private const val STALE_HIDE_MILLIS = 500L
         /** The field of a returning window started within 30 ms of its empty start. */
         private const val NO_FIELD_HIDE_MILLIS = 200L
-        private const val SELECT_AFTER_CURSOR_MILLIS = 250L
+        /** How long cursor mode waits for a finger lifted by a click on Space, before and after the key. */
+        private const val CLICK_GRACE_MILLIS = 250L
+        /** How long after a click on Space comes up the finger may still be settling, so leaning waits. */
+        private const val CLICK_SETTLE_MILLIS = 150L
+        /** How long a finger that lands on Space in select mode settles before leaning grows the selection. */
+        private const val LAND_SETTLE_MILLIS = 80L
         private const val FRAME_MILLIS = 16L
         /** Characters read on each side of the cursor to find the word it is in. */
         private const val WORD_REACH = 64
