@@ -25,6 +25,7 @@ import android.view.inputmethod.InputMethodManager
 import android.view.inputmethod.SurroundingText
 import com.atlas.engine.Calibration
 import com.atlas.engine.EmojiPages
+import com.atlas.engine.EmojiSearch
 import com.atlas.engine.Swipe
 import com.atlas.engine.SwipeTyping
 import com.atlas.engine.TypingSettings
@@ -61,6 +62,7 @@ class AtlasIme : InputMethodService() {
     private val modifiers = Modifiers()
     private var strip: Strip? = null
     private var emoji: EmojiPages? = null
+    private var emojiSearch: EmojiSearch? = null
     private var field = Field.None
     private var editing = false
     private var typedInField = false
@@ -178,13 +180,21 @@ class AtlasIme : InputMethodService() {
         Thread {
             val recents = getSharedPreferences(EMOJI_PREFERENCES, MODE_PRIVATE).getString(RECENT_EMOJI, "").orEmpty().split(" ")
             val paint = Paint()
-            val groups = try {
-                assets.open("emoji.txt").reader().use { EmojiPages.parse(it, paint::hasGlyph) }
+            val pages = try {
+                val groups = assets.open("emoji.txt").reader().use { EmojiPages.parse(it, paint::hasGlyph) }
+                val words = assets.open("emoji-words.txt").reader().use { EmojiPages.parseWords(it) }
+                val tones = assets.open("emoji-tones.txt").reader().use { EmojiPages.parseTones(it, paint::hasGlyph) }
+                EmojiPages(groups, recents, words, tones)
             } catch (error: IOException) {
                 Log.w("Atlas", "Could not read the emoji list", error)
                 return@Thread
             }
-            main.post { emoji = EmojiPages(groups, recents).also { strip?.emoji = it } }
+            main.post {
+                pages.tone(TypingSettings.skinTone(this))
+                emoji = pages
+                emojiSearch = EmojiSearch(pages)
+                strip?.emoji = pages
+            }
         }.start()
     }
 
@@ -218,6 +228,7 @@ class AtlasIme : InputMethodService() {
         cursorControl = TypingSettings.cursorControl(this)
         swipeTyping = TypingSettings.swipeTyping(this)
         actions = TypingSettings.actions(this)
+        emoji?.tone(TypingSettings.skinTone(this))
         strip?.showSuggestions = showSuggestions()
         main.removeCallbacks(showStrip)
         main.removeCallbacks(hideStrip)
@@ -505,13 +516,51 @@ class AtlasIme : InputMethodService() {
 
     private fun pickEmoji(picked: String) {
         enqueue {
-            composer.symbol(picked)
-            emoji?.use(picked)?.let { recents ->
-                getSharedPreferences(EMOJI_PREFERENCES, MODE_PRIVATE).edit().putString(RECENT_EMOJI, recents.joinToString(" ")).apply()
-            }
-            modifiers.consume()
+            insertEmoji(picked)
             showModifiers()
         }
+    }
+
+    private fun insertEmoji(picked: String) {
+        composer.symbol(picked)
+        emoji?.let { pages ->
+            val recents = pages.use(picked)
+            getSharedPreferences(EMOJI_PREFERENCES, MODE_PRIVATE).edit().putString(RECENT_EMOJI, recents.joinToString(" ")).apply()
+            // A locked Sym stays open for the next search.
+            if (pages.searching()) pages.reset()
+        }
+        strip?.refresh()
+        modifiers.consume()
+    }
+
+    /** While Sym is on, keys search the emoji. Null means the key does its usual job. */
+    private fun emojiKey(event: KeyEvent): Boolean? {
+        val search = emojiSearch ?: return null
+        val outcome = when (event.keyCode) {
+            KeyEvent.KEYCODE_DEL -> search.backspace()
+            KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER -> search.enter()
+            KeyEvent.KEYCODE_SPACE -> search.space()
+            else -> {
+                val typed = event.getUnicodeChar(event.metaState)
+                if (typed <= 0 || typed and KeyCharacterMap.COMBINING_ACCENT != 0) return null
+                search.character(typed)
+            }
+        }
+        when (outcome.action()) {
+            EmojiSearch.Action.PASS -> return null
+            EmojiSearch.Action.SEARCH -> strip?.refresh()
+            EmojiSearch.Action.INSERT -> insertEmoji(outcome.text())
+            EmojiSearch.Action.CLOSE -> modifiers.cancel(KeyEvent.KEYCODE_SYM)
+            EmojiSearch.Action.TYPE -> {
+                // Nothing matched, so the letters were meant as text. Type them, then let the key do its usual job.
+                modifiers.cancel(KeyEvent.KEYCODE_SYM)
+                outcome.text().forEach { character ->
+                    if (character == ' ') composer.space(repeated = false, time = event.eventTime) else composer.type(character.toString())
+                }
+                return null
+            }
+        }
+        return true
     }
 
     private val stripPaging get() = modifiers.alt != Modifiers.Level.Off || modifiers.sym != Modifiers.Level.Off
@@ -613,7 +662,7 @@ class AtlasIme : InputMethodService() {
                     // Sideways swipes page through the symbols or emoji on the strip. The pages follow the finger.
                     val dx = (outcome.points.last().x - outcome.points.first().x) * 10
                     val dy = (outcome.points.last().y - outcome.points.first().y) * 4
-                    if (modifiers.sym != Modifiers.Level.Off && abs(dy) > abs(dx) && abs(dy) >= Contact.PAGE_KEYS) {
+                    if (modifiers.sym != Modifiers.Level.Off && emoji?.searching() != true && abs(dy) > abs(dx) && abs(dy) >= Contact.PAGE_KEYS) {
                         // Up and down swipes, measured in key rows, jump between emoji groups.
                         strip?.jump(if (dy < 0) 1 else -1)
                         haptics.pulse(HapticPreset.Strong)
@@ -723,6 +772,11 @@ class AtlasIme : InputMethodService() {
     /** Captures each app-handled key as a paired command in the composer's ordered input queue. */
     private fun key(event: KeyEvent): Boolean {
         if (Modifiers.isModifier(event.keyCode)) {
+            // Sym cancels a search, even soon enough after the first press to count as a double press.
+            if (event.keyCode == KeyEvent.KEYCODE_SYM && event.repeatCount == 0 && emoji?.searching() == true) {
+                modifiers.cancel(event.keyCode)
+                return true
+            }
             modifiers.key(event)
             return true
         }
@@ -747,6 +801,7 @@ class AtlasIme : InputMethodService() {
             deadKeyPending = false
             return true
         }
+        if (modifiers.sym != Modifiers.Level.Off) emojiKey(event)?.let { return it }
         when (event.keyCode) {
             KeyEvent.KEYCODE_DEL -> {
                 // Ctrl or a held Alt with Backspace deletes the previous word. A tapped or locked Alt does not.
@@ -836,6 +891,8 @@ class AtlasIme : InputMethodService() {
 
     private fun showModifiers() {
         strip?.showSymbols = modifiers.alt != Modifiers.Level.Off
+        // Closing the emoji drops the search.
+        if (modifiers.sym == Modifiers.Level.Off && emoji?.searching() == true) emoji?.reset()
         strip?.showEmoji = modifiers.sym != Modifiers.Level.Off
         contact.paging = stripPaging
     }

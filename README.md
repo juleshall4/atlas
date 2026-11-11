@@ -49,7 +49,7 @@ Atlas also improves normal typing on the physical keys, with or without swipe ty
 - **Spelling corrections:** British or American English.
 - **Auto-capitalisation:** Capitals at the start of each sentence.
 - **Auto-punctuation:** Fixes "i" to "I", "dont" to "don't" and stray spaces before punctuation.
-- **Emoji:** Press Sym, with your recent emoji first.
+- **Emoji:** Press Sym, with your recent emoji first. Type a word to search, and pick a skin tone in Settings.
 - **Symbols:** Press Alt for symbols that aren't on the keys.
 - **Delete a word:** Hold Alt + Backspace.
 - **Cursor control:** Rest on the space bar, then slide left or right.

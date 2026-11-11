@@ -114,5 +114,14 @@ public final class TypingSettings {
                 variant == EnglishSpelling.Variant.AMERICAN ? "american" : "british").apply();
     }
 
+    /** The skin tone of emoji that take one. */
+    public static EmojiPages.Tone skinTone(Context context) {
+        return EmojiPages.Tone.of(preferences(context).getString("skin_tone", EmojiPages.Tone.DEFAULT.id));
+    }
+
+    public static void skinTone(Context context, EmojiPages.Tone tone) {
+        preferences(context).edit().putString("skin_tone", tone.id).apply();
+    }
+
     private TypingSettings() {}
 }
