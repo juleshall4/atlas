@@ -52,7 +52,6 @@ public final class EmojiPages {
     private final Set<String> known = new HashSet<>();
     // Search runs on every key press, so each emoji's words sit in flat arrays, in list order.
     private final String[] all;
-    private final Map<String, Integer> positions = new HashMap<>();
     private final String[] names;
     private final String[][] nameWords;
     private final String[][] allWords;
@@ -77,7 +76,6 @@ public final class EmojiPages {
         nameWords = new String[all.length][];
         allWords = new String[all.length][];
         for (int index = 0; index < all.length; index++) {
-            positions.put(all[index], index);
             Words found = words.get(all[index]);
             if (found == null) {
                 names[index] = "";
@@ -175,21 +173,12 @@ public final class EmojiPages {
         String[] words = words(query);
         String phrase = String.join(" ", words);
         int[] found = match(words, phrase);
-        // Recent emoji first, then the best rank. Ties keep list order, which the index in the low bits gives.
-        List<String> ordered = new ArrayList<>(found.length);
-        boolean[] recent = new boolean[all.length];
-        for (String emoji : recents) {
-            Integer index = positions.get(emoji);
-            if (index != null && Arrays.binarySearch(found, index) >= 0) {
-                recent[index] = true;
-                ordered.add(emoji);
-            }
-        }
+        // Best rank first. Ties keep list order, which the index in the low bits gives.
         long[] ranked = new long[found.length];
-        int count = 0;
-        for (int index : found) if (!recent[index]) ranked[count++] = (long) rank(index, words, phrase) << 32 | index;
-        Arrays.sort(ranked, 0, count);
-        for (int i = 0; i < count; i++) ordered.add(all[(int) ranked[i]]);
+        for (int i = 0; i < found.length; i++) ranked[i] = (long) rank(found[i], words, phrase) << 32 | found[i];
+        Arrays.sort(ranked);
+        List<String> ordered = new ArrayList<>(found.length);
+        for (long entry : ranked) ordered.add(all[(int) entry]);
         shown.clear();
         shown.add(new Group("", ordered));
         paginate(RESULTS_PER_PAGE);

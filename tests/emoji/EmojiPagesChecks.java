@@ -134,10 +134,11 @@ public final class EmojiPagesChecks {
         check(pages.results() == 0 && pages.top() == null && pages.page().isEmpty(), "A search with no match must show nothing");
 
         pages.use("😂");
-        pages.search("face");
-        check(pages.page().get(0).equals("😂"), "A recent emoji that matches must come first");
+        pages.use("🐷");
+        pages.search("pig");
+        check(pages.page().equals(List.of("🐖", "🐷")), "A search must not put the recent emoji first");
         pages.search("");
-        check(!pages.searching() && pages.group().equals("Faces") && pages.page().get(0).equals("😂"),
+        check(!pages.searching() && pages.group().equals("Faces") && pages.page().get(0).equals("🐷"),
                 "An empty search must open the groups again, with the recent emoji first");
         pages.search("pi");
         pages.reset();

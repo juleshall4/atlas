@@ -30,15 +30,20 @@ class Strip(
         if (showEmoji) pickEmoji(view.text.toString()) else symbol(view.text.toString())
     } }
     private val queryView = item(17f) {}.apply {
-        gravity = Gravity.CENTER_VERTICAL or Gravity.START
         ellipsize = TextUtils.TruncateAt.START
+        // The end gap and the slot around the first match make the same space as between two matches.
+        setPadding(dp(6), 0, dp(18), 0)
         isClickable = false
     }
     private val emptyView = item(17f) {}.apply {
+        gravity = Gravity.CENTER_VERTICAL or Gravity.START
         text = "No emoji"
+        // As far from the query as a match would be.
+        setPadding(dp(22), 0, dp(6), 0)
         setTextColor(MUTED)
         isClickable = false
     }
+    private var searching = false
     private var page = 0
     private var navigationInset = 0
 
@@ -80,9 +85,11 @@ class Strip(
     private val showPages get() = showSymbols || showEmoji
 
     init {
+        // Line up the slots by their centres, not by the text baseline, so the strip keeps still as its text sizes change.
+        isBaselineAligned = false
         for (view in wordViews) addView(view, LayoutParams(0, dp(56), 1f))
-        addView(queryView, LayoutParams(0, dp(56), (EmojiPages.PER_PAGE - EmojiPages.RESULTS_PER_PAGE).toFloat()))
-        addView(emptyView, LayoutParams(0, dp(56), EmojiPages.RESULTS_PER_PAGE.toFloat()))
+        addView(queryView, LayoutParams(LayoutParams.WRAP_CONTENT, dp(56)))
+        addView(emptyView, LayoutParams(LayoutParams.WRAP_CONTENT, dp(56)))
         for (view in symbolViews) addView(view, LayoutParams(0, dp(56), 1f))
         // Screen readers go left to right, so point them at the best word first.
         val ranked = wordViews.withIndex().sortedBy { WORD_ORDER[it.index] }.map { it.value }
@@ -117,6 +124,18 @@ class Strip(
         render()
     }
 
+    // A search puts its matches straight after the query, in slots as wide as the usual ones, so the gaps stay the same.
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val slot = (MeasureSpec.getSize(widthMeasureSpec) - paddingLeft - paddingRight) / EmojiPages.PER_PAGE
+        queryView.maxWidth = slot * (EmojiPages.PER_PAGE - EmojiPages.RESULTS_PER_PAGE)
+        for (view in symbolViews) {
+            val params = view.layoutParams as LayoutParams
+            params.width = if (searching) slot else 0
+            params.weight = if (searching) 0f else 1f
+        }
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+    }
+
     private fun item(size: Float, press: (TextView) -> Unit) = TextView(context).apply {
         typeface = this@Strip.typeface
         textSize = size
@@ -145,7 +164,8 @@ class Strip(
         }
         val emojiPage = if (showEmoji) emoji?.page().orEmpty() else emptyList()
         val query = if (showEmoji) emoji?.query().orEmpty() else ""
-        val searching = query.isNotEmpty()
+        if (searching != query.isNotEmpty()) requestLayout()
+        searching = query.isNotEmpty()
         val found = emoji?.results() ?: 0
         queryView.visibility = if (searching) VISIBLE else GONE
         queryView.text = SpannableString("$query|").apply {
