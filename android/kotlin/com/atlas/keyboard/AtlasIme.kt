@@ -54,7 +54,7 @@ class AtlasIme : InputMethodService() {
     private var cursorPath = ArrayList<Sample>()
     private var cursorControl = true
     private var swipeTyping = true
-    private var actions = true
+    private var actionKeys = emptySet<Int>()
     /** When cursor mode last ended; a press on Space just after selects the word at the cursor. */
     private var cursorEndedAt = Long.MIN_VALUE
     /** Whether the last cursor mode moved the cursor; only then does a press on Space select a word. */
@@ -232,7 +232,7 @@ class AtlasIme : InputMethodService() {
         tapKeys = TypingSettings.tapKeys(this)
         cursorControl = TypingSettings.cursorControl(this)
         swipeTyping = TypingSettings.swipeTyping(this)
-        actions = TypingSettings.actions(this)
+        actionKeys = TypingSettings.actions(this).mapNotNull(ACTION_KEYS::get).toSet()
         emoji?.tone(TypingSettings.skinTone(this))
         strip?.showSuggestions = showSuggestions()
         main.removeCallbacks(showStrip)
@@ -612,11 +612,6 @@ class AtlasIme : InputMethodService() {
                 }
                 else -> {
                     val typed = event.getUnicodeChar(event.metaState or modifiers.metaState)
-                    if (altActions && typed != 0) {
-                        modifiers.useHeld()
-                        pendingInput.removeFirst()
-                        return@repeat
-                    }
                     if (typed <= 0 || !Character.isValidCodePoint(typed) || Character.isISOControl(typed)) return
                     composer.type(String(Character.toChars(typed)), shifted = modifiers.shift == Modifiers.Level.Once)
                     modifiers.consume()
@@ -819,8 +814,8 @@ class AtlasIme : InputMethodService() {
         if (modifiers.sym != Modifiers.Level.Off) emojiKey(event)?.let { return it }
         when (event.keyCode) {
             KeyEvent.KEYCODE_DEL -> {
-                // Ctrl or a held Alt with Backspace deletes the previous word. A tapped or locked Alt does not.
-                composer.backspace(event.isCtrlPressed || altActions)
+                // Ctrl, or a held Alt with Delete word on, deletes the previous word. A tapped or locked Alt does not.
+                composer.backspace(event.isCtrlPressed || modifiers.altHeld && KeyEvent.KEYCODE_DEL in actionKeys)
                 modifiers.useHeld()
             }
             KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER -> { composer.enter(); modifiers.useHeld() }
@@ -828,11 +823,6 @@ class AtlasIme : InputMethodService() {
             KeyEvent.KEYCODE_TAB -> { modifiers.useHeld(); command(event) }
             else -> {
                 val typed = event.getUnicodeChar(event.metaState or modifiers.metaState)
-                // A held Alt is for shortcuts, so it types no symbols. A tapped or locked Alt types them.
-                if (altActions && typed != 0) {
-                    modifiers.useHeld()
-                    return true
-                }
                 val dead = typed and KeyCharacterMap.COMBINING_ACCENT != 0
                 if (dead || deadKeyPending || typed <= 0 || !Character.isValidCodePoint(typed) || Character.isISOControl(typed)) {
                     val textKey = dead || typed > 0 && Character.isValidCodePoint(typed) && !Character.isISOControl(typed)
@@ -851,12 +841,10 @@ class AtlasIme : InputMethodService() {
         return true
     }
 
-    /** A held Alt does actions, such as undo. With actions off, it types symbols like a tapped Alt. */
-    private val altActions get() = actions && modifiers.altHeld
-
     /** The keyboard has no Ctrl key, so holding Alt with a shortcut letter sends Ctrl with it. */
     private fun altShortcut(event: KeyEvent): KeyEvent? {
-        if (!altActions || event.isCtrlPressed || event.isMetaPressed) return null
+        // A held Alt does the actions that are on. With other keys, it types symbols like a tapped Alt.
+        if (!modifiers.altHeld || event.keyCode !in actionKeys || event.isCtrlPressed || event.isMetaPressed) return null
         val (code, meta) = when (event.keyCode) {
             // Ctrl+Shift+Z is the redo that Android, Compose and web text fields all accept.
             KeyEvent.KEYCODE_Y -> KeyEvent.KEYCODE_Z to (KeyEvent.META_CTRL_ON or KeyEvent.META_SHIFT_ON)
@@ -971,6 +959,10 @@ class AtlasIme : InputMethodService() {
             KeyEvent.KEYCODE_MOVE_END, KeyEvent.KEYCODE_PAGE_UP, KeyEvent.KEYCODE_PAGE_DOWN)
         private val FIELD_SHORTCUTS = setOf(KeyEvent.KEYCODE_A, KeyEvent.KEYCODE_C, KeyEvent.KEYCODE_X,
             KeyEvent.KEYCODE_V, KeyEvent.KEYCODE_Z, KeyEvent.KEYCODE_Y)
+        /** The keys of the actions on the Actions page, by their setting names. */
+        private val ACTION_KEYS = mapOf("undo" to KeyEvent.KEYCODE_Z, "redo" to KeyEvent.KEYCODE_Y,
+            "select_all" to KeyEvent.KEYCODE_A, "copy" to KeyEvent.KEYCODE_C, "cut" to KeyEvent.KEYCODE_X,
+            "paste" to KeyEvent.KEYCODE_V, "delete_word" to KeyEvent.KEYCODE_DEL)
         private val DESTRUCTIVE_SHORTCUTS = setOf(KeyEvent.KEYCODE_X, KeyEvent.KEYCODE_V,
             KeyEvent.KEYCODE_Z, KeyEvent.KEYCODE_Y)
     }

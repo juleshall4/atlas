@@ -45,8 +45,8 @@ export type State = {
   openApps: boolean;
   /** Apps from shortcuts open with Android's animation. Off, they show at once. */
   shortcutAnimation: boolean;
-  /** A held Alt and a key do an action, such as undo. Off, a held Alt types symbols. */
-  actions: boolean;
+  /** The actions, such as undo, that a held Alt and a key do. With an action off, its key types the Alt symbol. */
+  actions: string[];
   /** Each letter with an app, from A to Z. */
   shortcuts: Shortcut[];
   /** The speaker is tuned for media, such as music, video and games. */

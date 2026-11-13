@@ -320,7 +320,7 @@ private class AtlasAdapter(private val activity: MainActivity) : NativeAdapter, 
             .put("blockedWords", JSONArray(typing.blockedWords().toList()))
             .put("openApps", AppShortcuts.enabled(activity))
             .put("shortcutAnimation", AppShortcuts.animation(activity))
-            .put("actions", TypingSettings.actions(activity))
+            .put("actions", JSONArray(TypingSettings.actions(activity).toList()))
             .put("shortcuts", shortcuts)
             .put("music", Engine.music(activity))
             .put("calls", Engine.calls(activity))
@@ -392,7 +392,7 @@ private class AtlasAdapter(private val activity: MainActivity) : NativeAdapter, 
                 BackService.filterKeys()
             }
             "shortcutAnimation" -> AppShortcuts.animation(activity, value as Boolean)
-            "actions" -> TypingSettings.actions(activity, value as Boolean)
+            "actions" -> TypingSettings.actions(activity, (value as JSONArray).let { ids -> (0 until ids.length()).map(ids::getString).toSet() })
             "spelling" -> TypingSettings.spelling(activity,
                 if (value == "american") EnglishSpelling.Variant.AMERICAN else EnglishSpelling.Variant.BRITISH)
             "skinTone" -> TypingSettings.skinTone(activity, EmojiPages.Tone.of(value as String))

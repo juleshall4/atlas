@@ -14,7 +14,7 @@ export default function OpenApps() {
   const installed = useSnapshot(apps);
   /** The app that waits for a letter. */
   const [waiting, setWaiting] = useState<string | null>(null);
-  /** A letter that another app uses, pushed once. Pushed again, it moves to the waiting app. */
+  /** A letter that another app uses. It must be removed from that app before the waiting app can have it. */
   const [taken, setTaken] = useState<string | null>(null);
   const shortcuts = settings.status === "ready" ? settings.data.shortcuts : [];
 
@@ -26,13 +26,13 @@ export default function OpenApps() {
         if (own) void setShortcut(own.letter, null);
       } else if (key !== " ") {
         const owner = shortcuts.find(shortcut => shortcut.letter === key);
-        if (owner && owner.app !== waiting && taken !== key) return setTaken(key);
-        if (owner?.app !== waiting) void setShortcut(key, waiting);
+        if (owner && owner.app !== waiting) return setTaken(key);
+        if (!owner) void setShortcut(key, waiting);
       } else return;
       setWaiting(null);
       setTaken(null);
     });
-  }, [waiting, taken, shortcuts]);
+  }, [waiting, shortcuts]);
 
   if (settings.status !== "ready" || installed.status !== "ready") return <Screen title="Quick open" subtitle={subtitle} />;
 
@@ -42,13 +42,11 @@ export default function OpenApps() {
   for (const shortcut of shortcuts)
     if (!known.has(shortcut.app)) listed.push({ app: shortcut.app, name: shortcut.name, icon: null, letter: shortcut.letter });
 
-  const value = ({ app, letter }: Listed) => {
-    if (app !== waiting) return letter ?? "";
-    if (taken) {
-      const owner = shortcuts.find(shortcut => shortcut.letter === taken);
-      return `${owner?.name} uses ${taken}. Push ${taken} again`;
-    }
-    return letter ? "Push a letter or Backspace" : "Push a letter";
+  // The row keeps a short value, so it stays on one line. The subtitle gives the longer help.
+  const value = ({ app, letter }: Listed) => app !== waiting ? letter ?? "" : taken ? "In use" : "Push a letter";
+  const help = () => {
+    if (!waiting) return subtitle;
+    return letters.has(waiting) ? "Push a letter, or push Backspace to remove it." : "Push a letter for this app.";
   };
   const touch = (app: string) => {
     setTaken(null);
@@ -59,7 +57,7 @@ export default function OpenApps() {
 
   const withLetters = listed.filter(app => app.letter).sort(byName);
   const others = listed.filter(app => !app.letter).sort(byName);
-  return <Screen title="Quick open" subtitle={subtitle}>
+  return <Screen title="Quick open" subtitle={help()}>
     {withLetters.length ? <>
       <Section title="Shortcuts">{withLetters.map(row)}</Section>
       <Section title="Other apps">{others.map(row)}</Section>
