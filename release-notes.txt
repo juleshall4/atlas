@@ -5,7 +5,7 @@
 - Actions: Hold Alt and push a key to undo, redo, copy, cut, paste or select all.
 - Settings: Settings has a new layout.
 - Emoji search: Push Sym and type a word to find an emoji.
-- Audio: Atlas can tune the speaker for music, video and app calls.
+- Audio: Atlas can tune the speaker for media and app calls.
 
 ## New
 - Quick open: Hold Fn and push a letter to open an app. Or push Fn, then push the letter in 1 second. To set a letter, open Settings, then Shortcuts, then Apps. Select an app and push a letter. To remove the letter, select the app and push Backspace. To open apps with no animation, set Animation to off. To stop Fn from opening apps, set Quick open to off.
@@ -13,7 +13,7 @@
 - Emoji search: Push Sym, then type a word, for example "pizza". The strip shows the emoji that match. Push Enter to type the first emoji, or touch an emoji. When Sym is locked, the strip stays open for the next search. If no emoji match, the space bar and Enter type your words as text.
 - Skin tone: To change the skin tone of emoji with hands and people, open Settings, then Keyboard, then Skin tone.
 - Keyboard light: When you slide your finger on the keys outside a text field, the keyboard light comes on. To stop this, set Backlight on touch to off in Settings.
-- Audio: Atlas can tune the speaker for music and video. Open Settings, then Audio, and set Music and video to on. Headphones and Bluetooth do not change. To tune WhatsApp and other app calls, refer to the guide.
+- Audio: Atlas can tune the speaker for media, such as music, video and games. Open Settings, then Audio, and set Media to on. Headphones and Bluetooth do not change. To tune WhatsApp and other app calls, refer to the guide.
 
 ## Changed
 - Sym: When Sym is on, letters find emoji. Backspace with no search closes the emoji.

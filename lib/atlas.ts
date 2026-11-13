@@ -49,7 +49,7 @@ export type State = {
   actions: boolean;
   /** Each letter with an app, from A to Z. */
   shortcuts: Shortcut[];
-  /** The speaker is tuned for music and video. */
+  /** The speaker is tuned for media, such as music, video and games. */
   music: boolean;
   /** The speaker is tuned for calls in apps such as WhatsApp. */
   calls: boolean;

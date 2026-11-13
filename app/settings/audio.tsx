@@ -7,7 +7,7 @@ export default function Audio() {
   if (result.status !== "ready") return <Screen title="Audio" />;
   const settings = result.data;
   return <Screen title="Audio" subtitle="Tunes the speaker. Headphones and Bluetooth do not change.">
-    <Toggle label="Music and video" value={settings.music} onChange={music => save.run({ music })} />
+    <Toggle label="Media" value={settings.music} onChange={music => save.run({ music })} />
     <Toggle label="Calls" value={settings.calls} onChange={calls => save.run({ calls })} />
   </Screen>;
 }

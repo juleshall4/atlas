@@ -59,7 +59,7 @@ Atlas also improves normal typing on the physical keys, with or without swipe ty
 
 Atlas can also tune the Titan 2 Elite's loudspeaker in **Settings > Audio**.
 
-- **Music and video:** Fuller sound, less tinny, and no distortion at high volume. Headphones and Bluetooth stay as they are.
+- **Media:** Fuller, less tinny sound for music, video and games, with no distortion at high volume. Headphones and Bluetooth stay as they are.
 - **Calls:** Tunes WhatsApp and other app calls on the speaker. This needs one adb command:
 
   ```sh
