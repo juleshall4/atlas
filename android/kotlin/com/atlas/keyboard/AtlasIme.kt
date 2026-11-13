@@ -1,12 +1,16 @@
 package com.atlas.keyboard
 
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.graphics.Paint
 import android.hardware.display.DisplayManager
 import android.inputmethodservice.InputMethodService
 import android.os.Handler
 import android.os.Looper
+import android.os.PowerManager
 import android.os.SystemClock
 import android.util.Log
 import android.view.Display
@@ -170,6 +174,7 @@ class AtlasIme : InputMethodService() {
         overlay = TouchpadOverlay(this, touchpad = ::catchTouchpad)
         watch = TouchWatch(this) { if (touchpad.accepts(it)) light() }
         watch.show()
+        registerReceiver(screenOff, IntentFilter(Intent.ACTION_SCREEN_OFF), RECEIVER_NOT_EXPORTED)
         loadEmoji()
     }
 
@@ -427,9 +432,19 @@ class AtlasIme : InputMethodService() {
      * Turns on the keyboard light for a touch outside a text field. The Titan lights the keys for a key press, or
      * when the keyboard reports an active window, so ask to show the keyboard: Atlas refuses, but the request still
      * reports an active window. In a text field, the Titan keeps the light on by itself. Settings can turn this off.
+     * A touch as the screen goes off must not light the keys, or the light stays on with the screen off.
      */
     private fun light() {
-        if (!editing && TypingSettings.touchLight(this)) requestShowSelf(0)
+        if (!editing && TypingSettings.touchLight(this) && getSystemService(PowerManager::class.java).isInteractive) {
+            requestShowSelf(0)
+        }
+    }
+
+    /** A show request from [light] can arrive as the screen goes off. Hide again so the Titan turns off the light. */
+    private val screenOff = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (!editing) requestHideSelf(0)
+        }
     }
 
     private fun traceCursor(samples: List<Sample>, ended: Boolean) {
@@ -919,6 +934,7 @@ class AtlasIme : InputMethodService() {
         overlay.hide()
         BackService.catchTouchpad(null)
         watch.hide()
+        unregisterReceiver(screenOff)
         super.onDestroy()
     }
 
