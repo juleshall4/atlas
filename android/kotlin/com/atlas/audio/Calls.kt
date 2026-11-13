@@ -36,6 +36,9 @@ object Calls {
     fun allowed(context: Context): Boolean =
         context.checkSelfPermission(android.Manifest.permission.DUMP) == PackageManager.PERMISSION_GRANTED
 
+    /** The adb command that grants DUMP, with this build's package name. */
+    fun command(context: Context) = "adb shell pm grant ${context.packageName} android.permission.DUMP"
+
     private fun voiceSessions(): List<Int> {
         val dump = ProcessBuilder("dumpsys", "audio").redirectErrorStream(true).start()
         val text = dump.inputStream.bufferedReader().use { it.readText() }

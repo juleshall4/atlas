@@ -2,7 +2,7 @@
 
 Thank you for your help with Atlas. This guide tells you how to report a problem, suggest an idea, and send a change.
 
-You do not need a GitHub account to send a bug report or an idea. In Atlas, go to **Settings > Send feedback**.
+You do not need a GitHub account to send a bug report or an idea. In Atlas, go to **Send feedback**.
 
 ## Philosophy
 

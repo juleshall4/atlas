@@ -16,14 +16,15 @@ class PreviewChecks : Instrumentation() {
         val result = Bundle()
         try {
             val activity = startActivitySync(Intent().setClassName(targetContext.packageName, "com.vandam.ink.MainActivity")
+                .putExtra("com.vandam.ink.notification.HREF", "/settings/keyboard")
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
-            waitForPreview(activity)
+            openPreview(activity)
             swipe("first", .2f)
-            tap(955f, 190f)
-            waitFor("Settings did not open") { !homeEditor(activity) }
-            closeSettings(activity)
+            tap(970f, 190f)
+            waitFor("Back did not leave the preview") { !previewEditor(activity) }
+            openPreview(activity)
             swipe("returned", .6f)
-            result.putString("stream", "PASS preview shows a new swipe after returning from Settings")
+            result.putString("stream", "PASS preview shows a new swipe after returning from Keyboard")
             finish(Activity.RESULT_OK, result)
         } catch (error: Throwable) {
             val image = uiAutomation.takeScreenshot()!!
@@ -34,7 +35,7 @@ class PreviewChecks : Instrumentation() {
             finish(Activity.RESULT_CANCELED, result)
         }
     }
-    private fun homeEditor(activity: Activity): Boolean {
+    private fun previewEditor(activity: Activity): Boolean {
         fun editor(view: View): Boolean = when (view) {
             is EditText -> view.hasFocus() && view.hint?.toString() == "Swipe a word on the keyboard"
             is ViewGroup -> (0 until view.childCount).any { editor(view.getChildAt(it)) }
@@ -44,13 +45,13 @@ class PreviewChecks : Instrumentation() {
         runOnMainSync { ready = activity.hasWindowFocus() && editor(activity.window.decorView) }
         return ready
     }
-    /** Settings redraws when its data loads, and a tap during that redraw is lost, so try the close button again. */
-    private fun closeSettings(activity: Activity) {
+    /** Keyboard redraws when its data loads, and a tap during that redraw is lost, so try the preview button again. */
+    private fun openPreview(activity: Activity) {
         repeat(3) {
-            tap(970f, 190f)
-            if (runCatching { waitFor("", tries = 20) { homeEditor(activity) } }.isSuccess) return
+            tap(850f, 190f)
+            if (runCatching { waitFor("", tries = 20) { previewEditor(activity) } }.isSuccess) return
         }
-        error("Closing Settings did not return to the preview editor")
+        error("The preview button did not open the preview editor")
     }
     private fun waitFor(failure: String, tries: Int = 50, condition: () -> Boolean) {
         repeat(tries) {
@@ -59,7 +60,6 @@ class PreviewChecks : Instrumentation() {
         }
         error(failure)
     }
-    private fun waitForPreview(activity: Activity) = waitFor("Preview editor did not become ready") { homeEditor(activity) }
     private fun tap(x: Float, y: Float) {
         val time = SystemClock.uptimeMillis()
         sendPointerSync(MotionEvent.obtain(time, time, MotionEvent.ACTION_DOWN, x, y, 0))

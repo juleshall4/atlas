@@ -53,6 +53,8 @@ export type State = {
   music: boolean;
   /** The speaker is tuned for calls in apps such as WhatsApp. */
   calls: boolean;
+  /** The adb command that lets Atlas tune calls, or null when it has been run. */
+  callsCommand: string | null;
 };
 
 export type Shortcut = { letter: string; app: string; name: string };
@@ -139,6 +141,8 @@ export async function markNotesSeen() {
     await state.refresh();
   }
 }
+
+export const copy = (text: string) => atlas("copy", { text });
 
 export const enableKeyboard = () => atlas("enable");
 export const chooseKeyboard = () => atlas("choose");
