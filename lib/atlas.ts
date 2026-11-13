@@ -49,6 +49,10 @@ export type State = {
   actions: boolean;
   /** Each letter with an app, from A to Z. */
   shortcuts: Shortcut[];
+  /** The speaker is tuned for music and video. */
+  music: boolean;
+  /** The speaker is tuned for calls in apps such as WhatsApp. */
+  calls: boolean;
 };
 
 export type Shortcut = { letter: string; app: string; name: string };
@@ -56,7 +60,7 @@ export type Shortcut = { letter: string; app: string; name: string };
 /** An app with a launcher icon. `icon` is a picture of it, or null when it cannot be drawn. */
 export type App = { app: string; name: string; icon: string | null };
 
-export type Settings = Pick<State, "learning" | "tapKeys" | "autoCapitalise" | "autoPunctuation" | "suggestionBar" | "cursorControl" | "touchLight" | "swipeTyping" | "liftOff" | "liftOffMillis" | "haptics" | "hapticPreset" | "spelling" | "skinTone" | "openApps" | "shortcutAnimation" | "actions">;
+export type Settings = Pick<State, "learning" | "tapKeys" | "autoCapitalise" | "autoPunctuation" | "suggestionBar" | "cursorControl" | "touchLight" | "swipeTyping" | "liftOff" | "liftOffMillis" | "haptics" | "hapticPreset" | "spelling" | "skinTone" | "openApps" | "shortcutAnimation" | "actions" | "music" | "calls">;
 
 /** Touchpad points from 0 to 1 across the keyboard and down its four rows. */
 export type Point = [x: number, y: number];

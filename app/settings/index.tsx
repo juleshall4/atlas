@@ -14,6 +14,7 @@ export default function Settings() {
     <Section title="General">
       <Field label="Keyboard" href="/settings/keyboard" />
       <Field label="Shortcuts" href="/settings/shortcuts" />
+      <Field label="Audio" href="/settings/audio" />
     </Section>
     <Section title="Help">
       <Field label="Guide" href="/settings/guide" />

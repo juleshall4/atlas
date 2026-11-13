@@ -16,6 +16,8 @@ import android.os.Looper
 import android.provider.Settings
 import android.view.KeyEvent
 import android.view.inputmethod.InputMethodManager
+import com.atlas.audio.Engine
+import com.atlas.audio.SpeakerService
 import com.atlas.engine.EmojiPages
 import com.atlas.engine.EnglishSpelling
 import com.atlas.engine.SwipeTyping
@@ -61,6 +63,9 @@ private class AtlasAdapter(private val activity: MainActivity) : NativeAdapter, 
             activity.contentResolver.registerContentObserver(Settings.Secure.getUriFor(setting), false, keyboardSettings)
         // Settings load without waiting for the swipe engine; tell them when it finishes loading.
         typing.whenReady { _, _, _ -> publishState() }
+        Engine.init(activity)
+        // An update stops the speaker service; opening the app brings back whatever was on.
+        SpeakerService.sync(activity)
     }
 
     private fun syncPreview() {
@@ -298,6 +303,8 @@ private class AtlasAdapter(private val activity: MainActivity) : NativeAdapter, 
             .put("shortcutAnimation", AppShortcuts.animation(activity))
             .put("actions", TypingSettings.actions(activity))
             .put("shortcuts", shortcuts)
+            .put("music", Engine.music(activity))
+            .put("calls", Engine.calls(activity))
     }
 
     /** The Titan's Scroll assistant switch powers the keyboard touchpad, and it ships off. Phones without one pass. */
@@ -369,6 +376,14 @@ private class AtlasAdapter(private val activity: MainActivity) : NativeAdapter, 
             "spelling" -> TypingSettings.spelling(activity,
                 if (value == "american") EnglishSpelling.Variant.AMERICAN else EnglishSpelling.Variant.BRITISH)
             "skinTone" -> TypingSettings.skinTone(activity, EmojiPages.Tone.of(value as String))
+            "music" -> {
+                Engine.setMusic(value as Boolean)
+                SpeakerService.sync(activity)
+            }
+            "calls" -> {
+                Engine.setCalls(value as Boolean)
+                SpeakerService.sync(activity)
+            }
             else -> throw IllegalArgumentException("Unknown setting: $key")
         }
     }
