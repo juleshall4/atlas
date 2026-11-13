@@ -52,7 +52,7 @@ public final class TypingSettings {
 
     /** A slide on the keys outside a text field turns on the keyboard light. */
     public static boolean touchLight(Context context) {
-        return preferences(context).getBoolean("touch_light", true);
+        return preferences(context).getBoolean("touch_light", false);
     }
 
     public static void touchLight(Context context, boolean enabled) {

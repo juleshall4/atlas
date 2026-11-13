@@ -17,7 +17,7 @@ object AppShortcuts {
 
     private fun preferences(context: Context) = context.getSharedPreferences("app_shortcuts", Context.MODE_PRIVATE)
 
-    fun enabled(context: Context) = preferences(context).getBoolean("enabled", true)
+    fun enabled(context: Context) = preferences(context).getBoolean("enabled", false)
 
     fun enabled(context: Context, on: Boolean) {
         preferences(context).edit().putBoolean("enabled", on).apply()

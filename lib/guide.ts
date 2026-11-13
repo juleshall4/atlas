@@ -24,7 +24,7 @@ export const guide: { title: string; rows: GuideRow[] }[] = [
     title: "Keys", rows: [
       { title: "Tap keys", text: "Touch these keys lightly to type them. Select the keys in Keyboard. Tap keys operate only when Swipe typing is on.",
         terms: ["light touch", "soft press", "touch to type", "no press", "without clicking", "tap to type", "brush", "sensitive keys", "touch keyboard"] },
-      { title: "Keyboard light", text: "Outside a text field, slide your finger on the keys to turn on the keyboard light. To stop this, set Backlight on touch to off in Keyboard.",
+      { title: "Keyboard light", text: "Open Keyboard and set Backlight on touch to on. Then, outside a text field, slide your finger on the keys to turn on the keyboard light.",
         terms: ["backlight", "back light", "lights", "lit", "glow", "illuminate", "dark", "night", "see keys", "turn off light", "light comes on", "battery"] },
       { title: "Full stop", text: "Push the space bar two times.",
         terms: ["period", "dot", "point", "punctuation", "double space", "double tap space", "two spaces", "end sentence", "finish sentence", "auto punctuation"] },
@@ -46,7 +46,7 @@ export const guide: { title: string; rows: GuideRow[] }[] = [
         terms: ["skin colour", "skin color", "emoji colour", "emoji color", "hand colour", "dark skin", "light skin", "brown", "yellow emoji", "fitzpatrick"] },
       { title: "Change the keyboard", text: "Push and hold Sym. Then select a different keyboard from the list.",
         terms: ["switch keyboard", "change keyboard", "other keyboard", "another keyboard", "keyboard list", "keyboard picker", "input method", "go back", "hold sym", "long press sym"] },
-      { title: "Quick open", text: "Hold Fn and push a letter to open an app. You can also push Fn and then push the letter in 1 second. To give an app a letter, open Shortcuts and select Apps. Touch the app, then push the letter. To open apps with no animation, open Shortcuts and set Animation to off.",
+      { title: "Quick open", text: "Open Shortcuts and set Quick open to on. Then hold Fn and push a letter to open an app. You can also push Fn and then push the letter in 1 second. To give an app a letter, open Shortcuts and select Apps. Touch the app, then push the letter. To open apps with no animation, open Shortcuts and set Animation to off.",
         terms: ["app shortcuts", "open apps", "hyperkey", "hyper", "launcher", "launch", "open app", "start app", "quick open", "switch app", "keyboard shortcut", "hotkey", "hot key", "raycast", "leader key", "fn key", "func key", "programmable"] },
     ],
   },
