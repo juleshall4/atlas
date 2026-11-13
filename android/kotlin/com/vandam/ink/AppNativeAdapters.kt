@@ -58,6 +58,14 @@ private class AtlasAdapter(private val activity: MainActivity) : NativeAdapter, 
 
     private fun publishState() = activity.emit(JSONObject().put("type", "atlas-state").toString())
 
+    private val handler = Handler(Looper.getMainLooper())
+    // Android gives apps no event when adb grants DUMP, so check while Atlas is open until it is granted.
+    private val callsCheck = object : Runnable {
+        override fun run() {
+            if (Calls.allowed(activity)) publishState() else handler.postDelayed(this, 1000)
+        }
+    }
+
     init {
         activity.application.registerActivityLifecycleCallbacks(this)
         // Enabling and choosing the keyboard happen outside the app; the screens follow as they change.
@@ -89,12 +97,15 @@ private class AtlasAdapter(private val activity: MainActivity) : NativeAdapter, 
         visible = true
         syncPreview()
         publishState()
+        handler.removeCallbacks(callsCheck)
+        if (!Calls.allowed(activity)) handler.postDelayed(callsCheck, 1000)
     }
 
     override fun onActivityPaused(target: Activity) {
         if (target !== activity) return
         visible = false
         syncPreview()
+        handler.removeCallbacks(callsCheck)
     }
 
     override fun onActivityStopped(target: Activity) = onActivityPaused(target)
