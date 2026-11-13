@@ -16,6 +16,7 @@ import android.os.Looper
 import android.provider.Settings
 import android.view.KeyEvent
 import android.view.inputmethod.InputMethodManager
+import com.atlas.engine.EmojiPages
 import com.atlas.engine.EnglishSpelling
 import com.atlas.engine.SwipeTyping
 import com.atlas.engine.TypingSettings
@@ -290,6 +291,7 @@ private class AtlasAdapter(private val activity: MainActivity) : NativeAdapter, 
             .put("haptics", Haptics.enabled(activity))
             .put("hapticPreset", Haptics.preset(activity).id)
             .put("spelling", if (TypingSettings.spelling(activity) == EnglishSpelling.Variant.AMERICAN) "american" else "british")
+            .put("skinTone", TypingSettings.skinTone(activity).id)
             .put("words", words)
             .put("blockedWords", JSONArray(typing.blockedWords().toList()))
             .put("openApps", AppShortcuts.enabled(activity))
@@ -366,6 +368,7 @@ private class AtlasAdapter(private val activity: MainActivity) : NativeAdapter, 
             "actions" -> TypingSettings.actions(activity, value as Boolean)
             "spelling" -> TypingSettings.spelling(activity,
                 if (value == "american") EnglishSpelling.Variant.AMERICAN else EnglishSpelling.Variant.BRITISH)
+            "skinTone" -> TypingSettings.skinTone(activity, EmojiPages.Tone.of(value as String))
             else -> throw IllegalArgumentException("Unknown setting: $key")
         }
     }

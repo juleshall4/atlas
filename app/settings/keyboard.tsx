@@ -1,6 +1,7 @@
 import { Field, Screen, Section, Toggle, useAction, useSnapshot } from "ink";
 import { state, update, type State } from "../../lib/atlas";
 import { liftLabel } from "./lift";
+import { skinToneLabel } from "./skin-tone";
 import { spellingLabel } from "./spelling";
 import { tapKeysLabel } from "./tap-keys";
 import { vibrationLabel } from "./vibration";
@@ -21,6 +22,7 @@ export default function Keyboard() {
       <Toggle label="Auto-punctuation" value={settings.autoPunctuation}
         onChange={autoPunctuation => save.run({ autoPunctuation })} />
       <Field label="Spelling" href="/settings/spelling">{spellingLabel(settings)}</Field>
+      <Field label="Skin tone" href="/settings/skin-tone">{skinToneLabel(settings)}</Field>
       <Field label="Your words" href="/settings/data">{wordsLabel(settings)}</Field>
     </Section>
     <Section title="Swipe typing">
