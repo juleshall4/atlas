@@ -3,6 +3,8 @@ package com.atlas.engine;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import java.util.Set;
+
 public final class TypingSettings {
     public static final int MIN_LIFT_OFF_MILLIS = 50, MAX_LIFT_OFF_MILLIS = 200, DEFAULT_LIFT_OFF_MILLIS = 90;
     private static final String DEFAULT_TAP_KEYS = "AI ";
@@ -59,13 +61,13 @@ public final class TypingSettings {
         preferences(context).edit().putBoolean("touch_light", enabled).apply();
     }
 
-    /** Holding Alt with a key does an action, such as undo. Off, a held Alt types symbols. */
-    public static boolean actions(Context context) {
-        return preferences(context).getBoolean("alt_actions", true);
+    /** The actions, such as undo, that a held Alt and a key do. With an action off, its key types the Alt symbol. */
+    public static Set<String> actions(Context context) {
+        return preferences(context).getStringSet("alt_actions_v2", Set.of("delete_word"));
     }
 
-    public static void actions(Context context, boolean enabled) {
-        preferences(context).edit().putBoolean("alt_actions", enabled).apply();
+    public static void actions(Context context, Set<String> actions) {
+        preferences(context).edit().putStringSet("alt_actions_v2", actions).apply();
     }
 
     public static boolean liftOffGrace(Context context) { return preferences(context).getBoolean("lift_off_grace", true); }

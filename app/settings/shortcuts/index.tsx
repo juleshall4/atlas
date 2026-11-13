@@ -16,8 +16,7 @@ export default function Shortcuts() {
       </>}
     </Section>
     <Section title="Actions">
-      <Toggle label="Actions" value={settings.actions} onChange={actions => save.run({ actions })} />
-      {settings.actions && <Field label="Keys" href="/settings/shortcuts/actions">Alt + key</Field>}
+      <Field label="Keys" href="/settings/shortcuts/actions">Alt + key</Field>
     </Section>
   </Screen>;
 }

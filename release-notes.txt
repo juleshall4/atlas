@@ -9,7 +9,7 @@
 
 ## New
 - Quick open: Hold Fn and push a letter to open an app. Or push Fn, then push the letter in 1 second. To set a letter, open Shortcuts, then Apps. Select an app and push a letter. To remove the letter, select the app and push Backspace. To open apps with no animation, set Animation to off. Quick open is off at the start. To use it, open Shortcuts and set Quick open to on.
-- Actions: Push and hold Alt, then push a key. Z is undo. Y is redo. A selects all text. C is copy. X is cut. V is paste. Backspace deletes a word. To see all actions, open Shortcuts, then Keys. To type symbols with a held Alt, set Actions to off.
+- Actions: Push and hold Alt, then push a key. Z is undo. Y is redo. A selects all text. C is copy. X is cut. V is paste. Backspace deletes a word. Only Delete word is on at the start. To turn an action on or off, open Shortcuts, then Keys. When an action is off, a held Alt and its key type a symbol.
 - Emoji search: Push Sym, then type a word, for example "pizza". The strip shows the emoji that match. Push Enter to type the first emoji, or touch an emoji. When Sym is locked, the strip stays open for the next search. If no emoji match, the space bar and Enter type your words as text.
 - Skin tone: To change the skin tone of emoji with hands and people, open Keyboard, then Skin tone.
 - Keyboard light: When you slide your finger on the keys outside a text field, the keyboard light comes on. This is off at the start. To use it, open Keyboard and set Backlight on touch to on.
@@ -25,7 +25,6 @@
 - Tap keys: When swipe typing is off, tap keys do not type.
 - Vibration: This setting changes only swipe and tap key vibration. Atlas always vibrates when you start the cursor, move it or select a suggestion. To stop all vibration, set Touch feedback to off in Android settings.
 - Continue after a lift: This setting changes only swipe typing. Cursor control always continues after a lift of 90 ms or less.
-- Hold Alt: When you hold Alt, letters do not type symbols. Hold Alt for actions. To type a symbol, push Alt one time, or two times to lock it. When Actions is off, a held Alt types symbols.
 
 ## Fixed
 - Notifications: When a notification shows at the top of the screen, your swipes go to the keyboard. Before, the notification got swipes that started on the top row of keys. Atlas must be on in Accessibility for this fix.
@@ -33,4 +32,4 @@
 - Double letters: When you swipe a common word with a double letter, such as "coffee", Atlas finds the word more often.
 - Swipe end: Atlas gives more importance to the key where your swipe stops.
 - Delete a word: Only a held Alt with Backspace deletes a word. A tapped or locked Alt with Backspace deletes one letter.
-- Keyboard: When swipe typing is off, Keyboard does not show Tap keys, Vibration and Continue after a lift. When Quick open or Actions is off, Shortcuts does not show their settings.
+- Keyboard: When swipe typing is off, Keyboard does not show Tap keys, Vibration and Continue after a lift. When Quick open is off, Shortcuts does not show its settings.
