@@ -10,7 +10,7 @@
 
 </div>
 
-Atlas is an open-source toolkit for the Unihertz Titan 2 Elite. It currently provides two typing features for the physical keyboard: swipe typing and a keyboard. Each feature works independently. More features are in development.
+Atlas is an open-source toolkit for the Unihertz Titan 2 Elite. It currently provides two typing features for the physical keyboard: swipe typing and a keyboard. Each feature works independently. You can turn each setting on or off, so you use only the features that you want. More features are in development.
 
 ## Features
 
