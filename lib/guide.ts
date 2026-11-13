@@ -59,6 +59,14 @@ export const guide: { title: string; rows: GuideRow[] }[] = [
     ],
   },
   {
+    title: "Audio", rows: [
+      { title: "Better speaker sound", text: "Atlas can tune the speaker for music and video. Open Settings, then Audio, and set Music and video to on. Headphones and Bluetooth do not change.",
+        terms: ["sound", "speaker", "music", "video", "volume", "bass", "tinny", "loud", "distortion", "equaliser", "equalizer", "eq", "quality", "audio"] },
+      { title: "Calls on the speaker", text: "Atlas can tune WhatsApp and other app calls on the speaker. Connect the phone to a computer and run this adb command one time: adb shell pm grant com.atlas android.permission.DUMP. Then set Calls to on in Audio. Normal phone calls do not change.",
+        terms: ["call", "calls", "whatsapp", "voip", "voice", "speakerphone", "adb", "permission", "dump", "phone call"] },
+    ],
+  },
+  {
     title: "Problems", rows: [
       { title: "Check the setup", text: "If a part of Atlas does not operate correctly, open Settings. If it shows Finish setup, select it and do the steps that are not done.",
         terms: ["not working", "doesnt work", "stopped working", "broken", "bug", "glitch", "help", "fix", "enable", "turn on", "switch on", "activate", "permission", "install", "set up", "default keyboard", "choose keyboard", "switch keyboard", "keyboard missing", "keyboard not showing", "troubleshoot", "problem", "issue"] },

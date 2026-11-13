@@ -55,6 +55,17 @@ Atlas also improves normal typing on the physical keys, with or without swipe ty
 - **Cursor control:** Rest on the space bar, then slide left or right.
 - **Full stop:** Press space twice.
 
+### Audio
+
+Atlas can also tune the Titan 2 Elite's loudspeaker in **Settings > Audio**.
+
+- **Music and video:** Fuller sound, less tinny, and no distortion at high volume. Headphones and Bluetooth stay as they are.
+- **Calls:** Tunes WhatsApp and other app calls on the speaker. This needs one adb command:
+
+  ```sh
+  adb shell pm grant com.atlas android.permission.DUMP
+  ```
+
 See **Settings > Guide** for details.
 
 ## Requirements
@@ -85,6 +96,8 @@ All data stays on your device. Nobody, including me, can see your data.
 Atlas does not learn words from password, email, URL or private fields.
 
 Atlas shows over other apps only to read touches on the Titan 2 keys. It never reads the screen. You can turn off the silent notification that Android shows for this.
+
+The adb permission for calls lets Atlas find app calls in `dumpsys audio`. It reads nothing else from it.
 
 ## Contributing
 
