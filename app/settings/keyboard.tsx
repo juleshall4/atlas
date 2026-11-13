@@ -1,6 +1,8 @@
-import { Field, Screen, Section, Toggle, useAction, useSnapshot } from "ink";
+import { Field, Screen, Section, Toggle, navigate, useAction, useSnapshot } from "ink";
+import keyboard from "../../assets/icons/keyboard.svg";
 import { state, update, type State } from "../../lib/atlas";
 import { liftLabel } from "./lift";
+import { setupDone, setupLeft } from "./setup";
 import { skinToneLabel } from "./skin-tone";
 import { spellingLabel } from "./spelling";
 import { tapKeysLabel } from "./tap-keys";
@@ -13,7 +15,10 @@ export default function Keyboard() {
   const save = useAction(update);
   if (result.status !== "ready") return <Screen title="Keyboard" />;
   const settings = result.data;
-  return <Screen title="Keyboard">
+  const done = setupDone(settings);
+  // The preview needs a working keyboard, so it shows only after setup.
+  return <Screen title="Keyboard" rightAction={done ? { icon: keyboard, onPress: () => navigate("/settings/preview") } : undefined}>
+    {!done && <Field label="Finish setup" href="/settings/setup">{setupLeft(settings)}</Field>}
     <Section title="Typing">
       <Toggle label="Suggestion bar" value={settings.suggestionBar}
         onChange={suggestionBar => save.run({ suggestionBar })} />

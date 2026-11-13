@@ -20,6 +20,6 @@ export async function transfer(mode: "export" | "import", from: "data" | "failur
 
 /** Leaves a result page for Your words. */
 export function returnToData() {
-  replace("/settings");
+  replace("/");
   navigate("/settings/data");
 }

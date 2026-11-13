@@ -2,6 +2,8 @@ package com.vandam.ink
 
 import android.app.Activity
 import android.app.Application
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -16,6 +18,7 @@ import android.os.Looper
 import android.provider.Settings
 import android.view.KeyEvent
 import android.view.inputmethod.InputMethodManager
+import com.atlas.audio.Calls
 import com.atlas.audio.Engine
 import com.atlas.audio.SpeakerService
 import com.atlas.engine.EmojiPages
@@ -153,6 +156,11 @@ private class AtlasAdapter(private val activity: MainActivity) : NativeAdapter, 
                         throw error
                     }
                     null
+                }
+                "copy" -> {
+                    val text = data.getString("text")
+                    activity.getSystemService(ClipboardManager::class.java).setPrimaryClip(ClipData.newPlainText(text, text))
+                    "null"
                 }
                 "notesSeen" -> {
                     appPreferences().edit().putString(SEEN_NOTES, installedVersion()).apply()
@@ -305,6 +313,7 @@ private class AtlasAdapter(private val activity: MainActivity) : NativeAdapter, 
             .put("shortcuts", shortcuts)
             .put("music", Engine.music(activity))
             .put("calls", Engine.calls(activity))
+            .put("callsCommand", if (Calls.allowed(activity)) JSONObject.NULL else Calls.command(activity))
     }
 
     /** The Titan's Scroll assistant switch powers the keyboard touchpad, and it ships off. Phones without one pass. */

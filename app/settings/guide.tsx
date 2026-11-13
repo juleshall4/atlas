@@ -1,14 +1,11 @@
 import { useState } from "react";
-import { Row, Screen, Section, TextInput, replace, useRouteParams } from "ink";
-import { close, search } from "ink/icons";
+import { Row, Screen, Section, TextInput } from "ink";
+import { search } from "ink/icons";
 import { guide, searchGuide, type GuideRow } from "../../lib/guide";
 
 const row = ({ title, text }: GuideRow) => <Row key={title} title={title} subtitle={text} wrapSubtitle />;
 
 export default function Guide() {
-  // Opened from the front page, the guide closes back to it, like Settings does.
-  const fromHome = useRouteParams().from === "home";
-  const closeAction = fromHome ? { icon: close, onPress: () => replace("/") } : undefined;
   const [searching, setSearching] = useState(false);
   const [query, setQuery] = useState("");
   const results = searchGuide(query);
@@ -20,7 +17,7 @@ export default function Guide() {
       placeholder="Search the guide" action="search" autoFocus
       style={{ border: "none", paddingX: 0, paddingY: 0, minHeight: 50, fontSize: 26, placeholderColour: "muted" }} />
     : <Row title="Search" endIcon={search} onPress={() => setSearching(true)} />;
-  return <Screen title="Guide" subtitle="How to use Atlas." rightAction={closeAction} header={header}>
+  return <Screen title="Guide" subtitle="How to use Atlas." header={header}>
     {results
       ? results.length ? results.map(row) : <Row title="No results" subtitle="Use different words." wrapSubtitle />
       : guide.map(section => <Section key={section.title} title={section.title}>{section.rows.map(row)}</Section>)}

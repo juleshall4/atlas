@@ -49,7 +49,7 @@ Atlas also improves normal typing on the physical keys, with or without swipe ty
 - **Spelling corrections:** British or American English.
 - **Auto-capitalisation:** Capitals at the start of each sentence.
 - **Auto-punctuation:** Fixes "i" to "I", "dont" to "don't" and stray spaces before punctuation.
-- **Emoji:** Press Sym, with your recent emoji first. Type a word to search, and pick a skin tone in Settings.
+- **Emoji:** Press Sym, with your recent emoji first. Type a word to search, and pick a skin tone in **Keyboard**.
 - **Symbols:** Press Alt for symbols that aren't on the keys.
 - **Delete a word:** Hold Alt + Backspace.
 - **Cursor control:** Rest on the space bar, then slide left or right.
@@ -57,16 +57,16 @@ Atlas also improves normal typing on the physical keys, with or without swipe ty
 
 ### Audio
 
-Atlas can also tune the Titan 2 Elite's loudspeaker in **Settings > Audio**.
+Atlas can also tune the Titan 2 Elite's loudspeaker in **Audio**.
 
-- **Music and video:** Fuller sound, less tinny, and no distortion at high volume. Headphones and Bluetooth stay as they are.
+- **Media:** Fuller, less tinny sound for music, video and games, with no distortion at high volume. Headphones and Bluetooth stay as they are.
 - **Calls:** Tunes WhatsApp and other app calls on the speaker. This needs one adb command:
 
   ```sh
   adb shell pm grant com.atlas android.permission.DUMP
   ```
 
-See **Settings > Guide** for details.
+See **Guide** in Atlas for details.
 
 ## Requirements
 
@@ -109,7 +109,7 @@ Thank you for your interest in Atlas! All help is welcome. Before you write code
 4. **Test on a Titan 2 Elite.** Please test each pull request on a real device.
 5. **Open a pull request.** Link it to the approved issue.
 
-Not a developer? You can still help! To send a bug report or an idea, open **Settings > Send feedback** in Atlas.
+Not a developer? You can still help! To send a bug report or an idea, open **Send feedback** in Atlas.
 
 ## Credits
 

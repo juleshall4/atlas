@@ -10,9 +10,9 @@ export const guide: { title: string; rows: GuideRow[] }[] = [
     title: "Swiping", rows: [
       { title: "Swipe a word", text: "Move your finger across the letters. Do not push the keys. Lift your finger to type the word.",
         terms: ["swipe typing", "slide typing", "glide typing", "gesture typing", "trace", "drag", "draw", "shape writing", "one finger", "fast typing", "type faster", "without pressing", "write words", "how to type"] },
-      { title: "Turn off swiping", text: "To stop swipes from typing words, set Swipe typing to off in Settings. Tap keys also stop. Cursor control continues to operate.",
+      { title: "Turn off swiping", text: "To stop swipes from typing words, set Swipe typing to off in Keyboard. Tap keys also stop. Cursor control continues to operate.",
         terms: ["turn off swipe", "disable swipe", "switch off swipe", "no swipe", "accidental swipe", "unwanted words", "random words", "typing by itself", "ghost typing", "physical keys only"] },
-      { title: "Continue after a lift", text: "If your finger leaves the keyboard for a short time, the swipe continues. Change this time in Settings.",
+      { title: "Continue after a lift", text: "If your finger leaves the keyboard for a short time, the swipe continues. Change this time in Keyboard.",
         terms: ["slip recovery", "lift", "slip", "slipped", "lost contact", "finger came off", "let go", "cut off", "stops halfway", "half word", "timeout", "delay", "break", "gap", "pause", "sensitivity"] },
       { title: "Pick another word", text: "Touch a word on the strip above the keyboard.",
         terms: ["wrong word", "bad word", "not the word", "different word", "other words", "fix word", "change word", "replace word", "choose", "alternatives", "options", "candidates", "suggestion bar", "top bar"] },
@@ -22,9 +22,9 @@ export const guide: { title: string; rows: GuideRow[] }[] = [
   },
   {
     title: "Keys", rows: [
-      { title: "Tap keys", text: "Touch these keys lightly to type them. Select the keys in Settings. Tap keys operate only when Swipe typing is on.",
+      { title: "Tap keys", text: "Touch these keys lightly to type them. Select the keys in Keyboard. Tap keys operate only when Swipe typing is on.",
         terms: ["light touch", "soft press", "touch to type", "no press", "without clicking", "tap to type", "brush", "sensitive keys", "touch keyboard"] },
-      { title: "Keyboard light", text: "Outside a text field, slide your finger on the keys to turn on the keyboard light. To stop this, set Backlight on touch to off in Settings.",
+      { title: "Keyboard light", text: "Outside a text field, slide your finger on the keys to turn on the keyboard light. To stop this, set Backlight on touch to off in Keyboard.",
         terms: ["backlight", "back light", "lights", "lit", "glow", "illuminate", "dark", "night", "see keys", "turn off light", "light comes on", "battery"] },
       { title: "Full stop", text: "Push the space bar two times.",
         terms: ["period", "dot", "point", "punctuation", "double space", "double tap space", "two spaces", "end sentence", "finish sentence", "auto punctuation"] },
@@ -34,7 +34,7 @@ export const guide: { title: string; rows: GuideRow[] }[] = [
         terms: ["autocorrect", "auto correct", "spell check", "spellcheck", "misspelled", "correction", "predictions", "predictive text", "next word", "autocomplete", "auto complete", "typo", "mistake", "suggestion bar", "top bar"] },
       { title: "Delete a word", text: "Push and hold Alt, then push Backspace. You can also use Ctrl and Backspace.",
         terms: ["erase", "remove", "clear", "rub out", "back space", "delete whole word", "delete faster", "remove word", "wipe", "control"] },
-      { title: "Actions", text: "Push and hold Alt, then push a key. Z is undo. Y is redo. A selects all text. C is copy. X is cut. V is paste. Backspace deletes a word. To see the list, open Settings and select Shortcuts and Keys. To type symbols with a held Alt, set Actions to off.",
+      { title: "Actions", text: "Push and hold Alt, then push a key. Z is undo. Y is redo. A selects all text. C is copy. X is cut. V is paste. Backspace deletes a word. To see the list, open Shortcuts and select Keys. To type symbols with a held Alt, set Actions to off.",
         terms: ["shortcuts", "undo", "redo", "copy", "paste", "cut", "select all", "ctrl", "control", "ctrl z", "control z", "keyboard shortcut", "go back", "take back", "clipboard", "hold alt"] },
       { title: "More symbols", text: "When Alt is on, the strip shows symbols. Touch a symbol to type it. Swipe left or right on the keyboard to see more.",
         terms: ["punctuation", "characters", "special characters", "question mark", "exclamation", "comma", "apostrophe", "quotes", "brackets", "at sign", "hashtag", "hash", "dollar", "pound", "euro", "currency", "slash", "dash", "hyphen", "underscore", "ampersand", "percent", "accents", "maths", "math"] },
@@ -42,17 +42,17 @@ export const guide: { title: string; rows: GuideRow[] }[] = [
         terms: ["emojis", "emoticons", "smiley", "smileys", "faces", "emoji keyboard", "hearts", "thumbs up", "stickers", "reactions", "icons", "pictures", "sym key"] },
       { title: "Find an emoji", text: "Push Sym, then type a word, for example \"pizza\". The strip shows the emoji that match. Push Enter to type the first emoji, or touch an emoji. Push Sym to stop. If no emoji match, the space bar types your words as text.",
         terms: ["emoji search", "search emoji", "find emoji", "look up emoji", "type emoji name", "emoji name", "sym and type", "no emoji found"] },
-      { title: "Skin tone", text: "To change the skin tone of emoji with hands and people, open Settings, then Keyboard, then Skin tone.",
+      { title: "Skin tone", text: "To change the skin tone of emoji with hands and people, open Keyboard, then Skin tone.",
         terms: ["skin colour", "skin color", "emoji colour", "emoji color", "hand colour", "dark skin", "light skin", "brown", "yellow emoji", "fitzpatrick"] },
       { title: "Change the keyboard", text: "Push and hold Sym. Then select a different keyboard from the list.",
         terms: ["switch keyboard", "change keyboard", "other keyboard", "another keyboard", "keyboard list", "keyboard picker", "input method", "go back", "hold sym", "long press sym"] },
-      { title: "Quick open", text: "Hold Fn and push a letter to open an app. You can also push Fn and then push the letter in 1 second. To give an app a letter, open Settings and select Shortcuts and Apps. Touch the app, then push the letter. To open apps with no animation, open Shortcuts and set Animation to off.",
+      { title: "Quick open", text: "Hold Fn and push a letter to open an app. You can also push Fn and then push the letter in 1 second. To give an app a letter, open Shortcuts and select Apps. Touch the app, then push the letter. To open apps with no animation, open Shortcuts and set Animation to off.",
         terms: ["app shortcuts", "open apps", "hyperkey", "hyper", "launcher", "launch", "open app", "start app", "quick open", "switch app", "keyboard shortcut", "hotkey", "hot key", "raycast", "leader key", "fn key", "func key", "programmable"] },
     ],
   },
   {
     title: "Your words", rows: [
-      { title: "New words", text: "When you use a new word 3 times, Atlas learns it. A word that you add yourself stays. To see, add or block words, open Settings and select Keyboard and Your words.",
+      { title: "New words", text: "When you use a new word 3 times, Atlas learns it. A word that you add yourself stays. To see, add or block words, open Keyboard and select Your words.",
         terms: ["dictionary", "learn", "learned", "remember words", "custom words", "add word", "block word", "ban word", "remove word", "unwanted word", "keeps suggesting", "slang", "names", "nicknames", "swear words", "personal", "word list", "saved words"] },
       { title: "Backup", text: "To keep a copy of your words, open Your words and select Export words. To add the words again, select Import words.",
         terms: ["back up", "save", "restore", "transfer", "move words", "copy words", "new phone", "reset", "reinstall", "lose words", "lost words", "file", "keep words"] },
@@ -60,15 +60,15 @@ export const guide: { title: string; rows: GuideRow[] }[] = [
   },
   {
     title: "Audio", rows: [
-      { title: "Better speaker sound", text: "Atlas can tune the speaker for music and video. Open Settings, then Audio, and set Music and video to on. Headphones and Bluetooth do not change.",
-        terms: ["sound", "speaker", "music", "video", "volume", "bass", "tinny", "loud", "distortion", "equaliser", "equalizer", "eq", "quality", "audio"] },
-      { title: "Calls on the speaker", text: "Atlas can tune WhatsApp and other app calls on the speaker. Connect the phone to a computer and run this adb command one time: adb shell pm grant com.atlas android.permission.DUMP. Then set Calls to on in Audio. Normal phone calls do not change.",
+      { title: "Better speaker sound", text: "Atlas can tune the speaker for media, such as music, video and games. Open Audio and set Media to on. Headphones and Bluetooth do not change.",
+        terms: ["sound", "speaker", "media", "music", "video", "games", "podcasts", "volume", "bass", "tinny", "loud", "distortion", "equaliser", "equalizer", "eq", "quality", "audio"] },
+      { title: "Calls on the speaker", text: "Atlas can tune WhatsApp and other app calls on the speaker. Connect the phone to a computer and run this adb command one time: adb shell pm grant com.atlas android.permission.DUMP. Then open Audio and set Calls to on. Normal phone calls do not change.",
         terms: ["call", "calls", "whatsapp", "voip", "voice", "speakerphone", "adb", "permission", "dump", "phone call"] },
     ],
   },
   {
     title: "Problems", rows: [
-      { title: "Check the setup", text: "If a part of Atlas does not operate correctly, open Settings. If it shows Finish setup, select it and do the steps that are not done.",
+      { title: "Check the setup", text: "If the keyboard does not operate correctly, open Keyboard. If it shows Finish setup, select it and do the steps that are not done.",
         terms: ["not working", "doesnt work", "stopped working", "broken", "bug", "glitch", "help", "fix", "enable", "turn on", "switch on", "activate", "permission", "install", "set up", "default keyboard", "choose keyboard", "switch keyboard", "keyboard missing", "keyboard not showing", "troubleshoot", "problem", "issue"] },
       { title: "Sym does not show emoji", text: "In the phone Settings, open Shortcut keys. Set Sym key to Programmable key.",
         terms: ["emoji not working", "no emoji", "emoji missing", "sym key", "sym button", "symbol key", "shortcut", "programmable", "wrong key"] },

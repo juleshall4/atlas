@@ -24,7 +24,4 @@ export default defineTheme({
       <circle cx="${on ? 92 : 38}" cy="38" r="33" fill="${on ? "#f2f2f4" : colours.foreground}"/>
     </g></svg>`,
   }),
-  variants: {
-    onboarding: { header: { top: 0, bottom: 0, cutout: "beside" } },
-  },
 });
