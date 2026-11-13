@@ -46,7 +46,7 @@ export const guide: { title: string; rows: GuideRow[] }[] = [
         terms: ["skin colour", "skin color", "emoji colour", "emoji color", "hand colour", "dark skin", "light skin", "brown", "yellow emoji", "fitzpatrick"] },
       { title: "Change the keyboard", text: "Push and hold Sym. Then select a different keyboard from the list.",
         terms: ["switch keyboard", "change keyboard", "other keyboard", "another keyboard", "keyboard list", "keyboard picker", "input method", "go back", "hold sym", "long press sym"] },
-      { title: "Quick open", text: "Open Shortcuts and set Quick open to on. Then hold Fn and push a letter to open an app. You can also push Fn and then push the letter in 1 second. To give an app a letter, open Shortcuts and select Apps. Touch the app, then push the letter. To open apps with no animation, open Shortcuts and set Animation to off.",
+      { title: "Quick open", text: "Open Shortcuts and set Quick open to on. Then hold Fn and push a letter to open an app. You can also push Fn and then push the letter in 1 second. To give an app a letter, open Shortcuts and select Apps. Touch the app, then push the letter. A letter opens only one app. To give it to a different app, first remove it from the app that has it. To open apps with no animation, open Shortcuts and set Animation to off.",
         terms: ["app shortcuts", "open apps", "hyperkey", "hyper", "launcher", "launch", "open app", "start app", "quick open", "switch app", "keyboard shortcut", "hotkey", "hot key", "raycast", "leader key", "fn key", "func key", "programmable"] },
     ],
   },

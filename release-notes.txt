@@ -8,7 +8,7 @@
 - Audio: Atlas can tune the speaker for media and app calls.
 
 ## New
-- Quick open: Hold Fn and push a letter to open an app. Or push Fn, then push the letter in 1 second. To set a letter, open Shortcuts, then Apps. Select an app and push a letter. To remove the letter, select the app and push Backspace. To open apps with no animation, set Animation to off. Quick open is off at the start. To use it, open Shortcuts and set Quick open to on.
+- Quick open: Hold Fn and push a letter to open an app. Or push Fn, then push the letter in 1 second. To set a letter, open Shortcuts, then Apps. Select an app and push a letter. To remove the letter, select the app and push Backspace. A letter opens only one app. To give it to a different app, first remove it from the app that has it. To open apps with no animation, set Animation to off. Quick open is off at the start. To use it, open Shortcuts and set Quick open to on.
 - Actions: Push and hold Alt, then push a key. Z is undo. Y is redo. A selects all text. C is copy. X is cut. V is paste. Backspace deletes a word. Only Delete word is on at the start. To turn an action on or off, open Shortcuts, then Keys. When an action is off, a held Alt and its key type a symbol.
 - Emoji search: Push Sym, then type a word, for example "pizza". The strip shows the emoji that match. Push Enter to type the first emoji, or touch an emoji. When Sym is locked, the strip stays open for the next search. If no emoji match, the space bar and Enter type your words as text.
 - Skin tone: To change the skin tone of emoji with hands and people, open Keyboard, then Skin tone.
