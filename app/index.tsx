@@ -15,7 +15,7 @@ export default function Home() {
       <Field label="Audio" href="/settings/audio" />
     </Section>
     <Section title="Help">
-      <Field label="Guide" href="/settings/guide" />
+      <Field label="Guide" url="https://atlas.julian-hall.com" />
       <Field label="Send feedback" href="/settings/feedback" />
       {hasReleaseNotes(version) && <Field label="What's new" href="/settings/whats-new" />}
       <Field label="About" href="/settings/about" />
