@@ -1,58 +1,70 @@
 ---
 title: Keys
-description: Type faster on the physical keys with tap keys, suggestions, symbols and emoji.
+description: Atlas also makes normal typing on the keys faster, with suggestions, corrections, symbols, emoji and a cursor you move from the space bar.
 ---
 
 import Setting from '../../../components/Setting.astro';
 
-## Tap keys
+## Word suggestions and corrections
 
-Touch these keys lightly to type them, without pressing. Choose which keys in **Keyboard**. Tap keys only type when Swipe typing is on.
+As you type, the strip above the keyboard shows the words you are most likely typing, and a correction if a word looks misspelled. After a word, it suggests the next one. Touch a word to type it.
 
-## Word suggestions
+To hide the strip, turn off **Suggestion bar** in **Keyboard**.
 
-As you type, the strip above the keyboard shows words and spelling corrections. Touch a word to type it.
+Atlas corrects spelling in British or American English. To choose, open **Keyboard** and select **Spelling**.
 
-## Full stop
+## Capitals and punctuation
 
-Press the space bar twice.
+Atlas starts each sentence with a capital letter. It also fixes small things as you type, such as "i" to "I", "dont" to "don't", and a space before a full stop or comma.
+
+To type a full stop at the end of a sentence, press the space bar twice.
+
+To turn these off, use **Auto-capitalisation** and **Auto-punctuation** in **Keyboard**.
 
 ## Shift and Alt
 
-Press once for the next letter only. Press twice quickly to lock it, and once more to unlock.
+Press Shift or Alt once and it applies to the next key only. Press it twice quickly to lock it on, then press it again to unlock it.
 
-Hold Alt and press a key to use an [action](/keyboard/shortcuts/#actions).
+When Alt is on, the strip shows symbols that are not printed on the keys. Touch one to type it, or swipe left or right on the keys to see more.
 
-## Delete a word
-
-Hold Alt and press Backspace. Ctrl and Backspace also work.
-
-## More symbols
-
-When Alt is on, the strip shows symbols. Touch a symbol to type it. Swipe left or right on the keys to see more.
+You can also hold Alt and press a key for an [action](/keyboard/shortcuts/#edit-text-with-actions), such as undo or copy.
 
 ## Emoji
 
-Sym works like Shift. The strip shows emoji, with your recent emoji first. Swipe left or right on the keys to see more, or up or down for the next group.
+Press Sym to show emoji in the strip, with your recent emoji first. Swipe left or right on the keys to see more, or up or down to move between groups, such as faces and hands. Touch an emoji to type it.
 
-## Find an emoji
+Sym works like Shift: press it once, or press it twice quickly to lock it. Press Backspace to close the emoji.
 
-Press Sym, then type a word, such as "pizza". The strip shows emoji that match. Press Enter to type the first one, or touch the one you want. Press Sym again to stop.
+### Find an emoji
 
-If no emoji match, the space bar types your words as text.
+Press Sym, then type a word, such as "pizza". The strip shows emoji that match. Press Enter to type the first one, or touch the one you want. If Sym is locked, the strip stays open for your next search.
 
-## Skin tone
+If nothing matches, the space bar and Enter type your word as normal text.
 
-Choose a skin tone for emoji with hands and people in **Keyboard**.
+### Skin tone
+
+To choose the skin tone for emoji with hands and people, open **Keyboard** and select **Skin tone**.
 
 <Setting path={['Keyboard']} name="Skin tone" value="Default" />
 
-## Keyboard light
+## Move the cursor
 
-Turn on Backlight on touch in **Keyboard**. Then, outside a text field, slide your finger on the keys to turn on the keyboard light.
+Rest your finger on the space bar until you feel a click, then slide left or right to move the cursor. Lift your finger when the cursor is where you want it.
+
+This works even when swipe typing is off. To turn it off, turn off **Cursor control** in **Keyboard**.
+
+## Delete a whole word
+
+Hold Alt and press Backspace. Ctrl and Backspace does the same.
+
+## Light up the keys
+
+Slide your finger on the keys when you are not typing in a text field, and the keyboard light comes on. This helps you find the keys in the dark.
+
+This is off at the start. To turn it on, turn on **Backlight on touch** in **Keyboard**.
 
 <Setting path={['Keyboard']} name="Backlight on touch" on />
 
-## Change the keyboard
+## Switch to a different keyboard
 
-Hold Sym, then select a different keyboard from the list.
+Hold Sym, then choose a keyboard from the list.

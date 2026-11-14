@@ -1,30 +1,44 @@
 ---
 title: Swiping
-description: Type a whole word in one movement, pick a different word, and move the cursor without leaving the keys.
+description: The keys on the Titan 2 Elite are also a touchpad. Slide your finger across a word's letters to type the whole word at once.
 ---
 
 import Setting from '../../../components/Setting.astro';
 
 ## Swipe a word
 
-Slide your finger across the letters without pressing the keys, then lift it to type the word.
+Put your finger on the first letter of the word and slide across the other letters, without pressing the keys. Lift your finger at the last letter, and Atlas types the word.
 
-## Turn off swiping
+You do not need to be exact. Atlas looks at the shape of your swipe and picks the word that fits it best. Swiping works in any app where you can type.
 
-Turn off Swipe typing in **Keyboard**. Swipes and tap keys stop typing words, but you can still move the cursor.
+Swipe typing is on after [setup](/#set-up-the-keyboard). Swipe recognition runs on your phone, and works in English only.
 
-<Setting path={['Keyboard']} name="Swipe typing" />
+## Pick a different word
 
-## Continue after a lift
+If Atlas types the wrong word, look at the strip above the keyboard. It shows the next best matches. Touch the word you meant, and Atlas swaps it in.
 
-If your finger leaves the keys for a moment, the swipe carries on. You can change how long Atlas waits in **Keyboard**.
+## Type short words with a tap
+
+Short words such as "a" and "I" are hard to swipe. Tap keys let you type them with a light tap instead of a full press, so you can keep your hands in swiping position.
+
+To choose your tap keys, open **Keyboard** and select **Tap keys**, then press each key you want to add. Tap keys only work while swipe typing is on.
+
+## Keep a swipe going if your finger slips
+
+If your finger leaves the keys for a moment in the middle of a word, Atlas waits briefly before it ends the swipe. Put your finger back down and carry on.
+
+To change how long Atlas waits, open **Keyboard** and select **Continue after a lift**. A longer time forgives bigger slips. A shorter time ends words faster. Choose **Off** to end every swipe as soon as you lift your finger.
 
 <Setting path={['Keyboard']} name="Continue after a lift" value="100 ms" />
 
-## Pick another word
+## Feel each swipe
 
-Touch a different word on the strip above the keyboard to type it instead.
+Atlas can give a light vibration as your finger moves across the keys. To change it, open **Keyboard** and select **Vibration**. You can choose **Normal**, **Strong** or **Off**, and try each one by swiping on the page.
 
-## Move the cursor
+This setting only changes swipe and tap key vibration. Atlas always gives a short vibration when you start moving the cursor or pick a word from the strip. To turn off all vibration, turn off **Touch feedback** in Android settings.
 
-Rest your finger on the space bar until you feel a click, then slide left or right.
+## Turn off swipe typing
+
+If you only want to press keys, turn off **Swipe typing** in **Keyboard**. Swipes and tap keys stop typing, but you can still [move the cursor](/keyboard/keys/#move-the-cursor) with the space bar.
+
+<Setting path={['Keyboard']} name="Swipe typing" on />

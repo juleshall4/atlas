@@ -1,36 +1,46 @@
 ---
 title: Shortcuts
-description: Open apps and edit text from the physical keys.
+description: Open any app from the keys, and undo, copy and paste without touching the screen.
 ---
 
 import Setting from '../../../components/Setting.astro';
 
-## Quick open
+## Open apps with Quick open
 
-Turn on Quick open in **Shortcuts**. Then hold Fn and press a letter to open an app. You can also press Fn, then press the letter within 1 second.
+Quick open lets you open an app from anywhere with two keys. Give the app a letter, then hold Fn and press that letter.
+
+You can also press Fn and let go, then press the letter within 1 second. This is easier with one hand.
+
+### Turn on Quick open
+
+Open **Shortcuts** and turn on **Quick open**. If you see **Finish setup**, select it first: Quick open needs Atlas turned on in Accessibility so it can start apps.
 
 <Setting path={['Shortcuts']} name="Quick open" on />
 
-To give an app a letter:
+### Give an app a letter
 
-1. Open **Shortcuts** and select **Apps**.
+1. In **Shortcuts**, select **Apps**.
 2. Touch the app.
-3. Press the letter.
+3. Press the letter you want.
 
-Each letter opens one app. To give a letter to a different app, first remove it from the app that has it.
+Each letter can open one app. To move a letter to a different app, first touch the app that has it and press Backspace to remove it.
 
-To open apps without an animation, turn off **Animation** in **Shortcuts**.
+Apps open with the normal Android animation. To open them instantly, turn off **Animation** in **Shortcuts**.
 
-## Actions
+## Edit text with actions
 
-Hold Alt and press a key:
+Hold Alt and press a key to edit text without touching the screen:
 
-- Z to undo
-- Y to redo
-- A to select all
-- C to copy
-- X to cut
-- V to paste
-- Backspace to delete a word
+| Keys | Action |
+|---|---|
+| Alt and Z | Undo |
+| Alt and Y | Redo |
+| Alt and A | Select all |
+| Alt and C | Copy |
+| Alt and X | Cut |
+| Alt and V | Paste |
+| Alt and Backspace | Delete a word |
 
-Only Backspace is on at the start. To turn an action on or off, open **Shortcuts** and select **Keys**. When an action is off, Alt and its key type a symbol.
+Only Delete a word is on at the start, so Alt and a letter still type symbols. To turn on the actions you want, open **Shortcuts** and select **Keys**.
+
+When an action is off, Alt and that key type a symbol as normal. Actions need Atlas to be your keyboard.
