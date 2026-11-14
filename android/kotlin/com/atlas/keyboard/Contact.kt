@@ -49,7 +49,7 @@ class Contact {
         internal val startedAt: Long,
         internal val endedAt: Long,
     ) {
-        var cancelled = false
+        internal var cancelled = false
     }
 
     private var state: State = State.Idle
@@ -146,8 +146,6 @@ class Contact {
         if (code == KeyEvent.KEYCODE_DEL || doubleSpace && code == KeyEvent.KEYCODE_SPACE) return
         blockedUntil = max(blockedUntil, time + KEY_COOLDOWN_MILLIS)
     }
-
-    fun diag() = "state=${state.javaClass.simpleName} held=$heldKeys blockedUntil=$blockedUntil typingUntil=$typingUntil"
 
     fun releaseKeys() {
         heldKeys.clear()

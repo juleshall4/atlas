@@ -22,7 +22,7 @@ class TouchWatch(private val context: Context, private val touched: (MotionEvent
         if (view != null || !Settings.canDrawOverlays(context)) return
         val watcher = object : View(context) {
             override fun dispatchTouchEvent(event: MotionEvent): Boolean {
-                if (event.actionMasked == MotionEvent.ACTION_OUTSIDE) { android.util.Log.d("AtlasDiag", "watch outside dev=${event.device?.name}"); touched(event) }
+                if (event.actionMasked == MotionEvent.ACTION_OUTSIDE) touched(event)
                 return false
             }
         }
