@@ -4,13 +4,13 @@
 
 ### Atlas
 
-![Version 1.3.0](https://img.shields.io/badge/version-1.3.0-111111?style=flat-square)
+![Version 2.0.0](https://img.shields.io/badge/version-2.0.0-111111?style=flat-square)
 
 **A toolkit to power up your Unihertz Titan 2 Elite!**
 
 </div>
 
-Atlas is an open-source toolkit for the Unihertz Titan 2 Elite. It currently provides two typing features for the physical keyboard: swipe typing and a keyboard. Each feature works independently. You can turn each setting on or off, so you use only the features that you want. More features are in development.
+Atlas is an open-source toolkit for the Unihertz Titan 2 Elite. It currently provides swipe typing and a better keyboard for the physical keys, keyboard shortcuts to open apps and edit text, and better speaker sound. Each feature works independently. You can turn each setting on or off, so you use only the features that you want. More features are in development.
 
 ## Features
 
@@ -28,9 +28,9 @@ The Titan 2 Elite's keys double as a touchpad, so you can swipe words without pr
 
 - **Swipe recognition:** On-device, powered by FUTO's models.
 - **Alternative words:** Tap another word on the strip to replace a swipe.
-- **Slip recovery:** A swipe survives your finger briefly leaving the keys.
+- **Continue after a lift:** A swipe survives your finger briefly leaving the keys.
 - **Tap keys:** Lightly tap chosen keys to type words like "a" and "I" without breaking your swipe flow.
-- **Swipe vibration:** Light haptic feedback as you swipe.
+- **Vibration:** Light haptic feedback as you swipe.
 - **Personal dictionary:** Learns your words, which you can edit, export and import.
 
 > **Languages:** Swipe typing supports only English. Each new language needs its own trained models and a lot of testing, which is a very large task.
@@ -51,16 +51,23 @@ Atlas also improves normal typing on the physical keys, with or without swipe ty
 - **Auto-punctuation:** Fixes "i" to "I", "dont" to "don't" and stray spaces before punctuation.
 - **Emoji:** Press Sym, with your recent emoji first. Type a word to search, and pick a skin tone in **Keyboard**.
 - **Symbols:** Press Alt for symbols that aren't on the keys.
-- **Delete a word:** Hold Alt + Backspace.
 - **Cursor control:** Rest on the space bar, then slide left or right.
 - **Full stop:** Press space twice.
+- **Backlight on touch:** The keyboard light comes on when you slide your finger on the keys outside a text field.
+
+### Shortcuts
+
+Use the physical keys to open apps and edit text. Set them up in **Shortcuts**.
+
+- **Quick open:** Give each app a letter, then hold Fn and press it to open the app. You can also tap Fn, then press the letter within a second.
+- **Actions:** Hold Alt and press a key: Z to undo, Y to redo, A to select all, C to copy, X to cut, V to paste and Backspace to delete a word. Turn each action on or off in **Keys**.
 
 ### Audio
 
-Atlas can also tune the Titan 2 Elite's loudspeaker in **Audio**.
+Atlas can also make the Titan 2 Elite's loudspeaker sound better. Open **Audio**.
 
-- **Media:** Fuller, less tinny sound for music, video and games, with no distortion at high volume. Headphones and Bluetooth stay as they are.
-- **Calls:** Tunes WhatsApp and other app calls on the speaker. This needs one adb command:
+- **Better media:** The speaker sounds fuller and clearer for music, video and games, with no distortion at high volume. Headphones and Bluetooth stay as they are.
+- **Clearer calls:** Clearer voices in WhatsApp and other app calls on the speaker. This needs one adb command:
 
   ```sh
   adb shell pm grant com.atlas android.permission.DUMP
