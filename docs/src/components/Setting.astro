@@ -1,0 +1,108 @@
+---
+/**
+ * A setting as Atlas shows it: where to find it, its name, and a switch or a value.
+ * Example: <Setting path={['Keyboard']} name="Swipe typing" on />
+ */
+interface Props {
+	/** The pages to open after Atlas, in order. */
+	path: string[];
+	name: string;
+	/** Show a switch in this state. */
+	on?: boolean;
+	/** Show this value instead of a switch. */
+	value?: string;
+}
+
+const { path, name, on = false, value } = Astro.props;
+const chevron = 'M1 1l6 6-6 6';
+---
+
+<figure class="setting not-content" aria-label={`Atlas, ${path.join(', ')}, ${name}`}>
+	<div class="path">
+		{
+			['Atlas', ...path].map((page, i) => (
+				<>
+					{i > 0 && (
+						<svg width="7" height="12" viewBox="0 0 8 14" aria-hidden="true">
+							<path d={chevron} />
+						</svg>
+					)}
+					<span>{page}</span>
+				</>
+			))
+		}
+	</div>
+	<div class="row">
+		<span class="name">{name}</span>
+		{
+			value ? (
+				<span class="value">{value}</span>
+			) : (
+				<span class:list={['switch', { on }]} role="img" aria-label={on ? 'On' : 'Off'}>
+					<span />
+				</span>
+			)
+		}
+	</div>
+</figure>
+
+<style>
+	.setting {
+		margin: 1.5rem 0 0;
+		border: 1px solid var(--sl-color-hairline-light);
+		border-radius: 0.75rem;
+		background: var(--sl-color-bg-sidebar);
+	}
+	.path {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.75rem 1.25rem;
+		border-bottom: 1px solid var(--sl-color-hairline-light);
+		color: var(--sl-color-gray-2);
+		font-size: var(--sl-text-sm);
+		font-weight: 500;
+	}
+	.path path {
+		fill: none;
+		stroke: var(--sl-color-gray-4);
+		stroke-width: 1.8;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+	.row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		padding: 1.1rem 1.25rem;
+	}
+	.name {
+		color: var(--sl-color-white);
+		font-size: var(--sl-text-lg);
+		font-weight: 500;
+	}
+	.value {
+		color: var(--sl-color-gray-2);
+		font-size: var(--sl-text-lg);
+	}
+	.switch {
+		display: flex;
+		flex-shrink: 0;
+		width: 3.5rem;
+		height: 2rem;
+		padding: 2px;
+		border-radius: 1rem;
+		background: #3a3a3c;
+	}
+	.switch span {
+		width: calc(2rem - 4px);
+		height: calc(2rem - 4px);
+		border-radius: 50%;
+		background: #f2f2f4;
+	}
+	.switch.on {
+		justify-content: flex-end;
+		background: #8e8e93;
+	}
+</style>

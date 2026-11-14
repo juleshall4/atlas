@@ -1,0 +1,203 @@
+/*
+ * The Atlas theme: the same black, white and greys as the app, with Inter.
+ * Atlas has one theme, so light mode uses the same colours.
+ */
+:root,
+:root[data-theme='light'] {
+	color-scheme: dark;
+
+	--sl-font: 'Inter Variable', 'Inter', system-ui, sans-serif;
+
+	--sl-color-white: #ffffff;
+	--sl-color-gray-1: #e5e5ea;
+	--sl-color-gray-2: #8e8e93;
+	--sl-color-gray-3: #8e8e93;
+	--sl-color-gray-4: #5a5a5e;
+	--sl-color-gray-5: #2c2c2e;
+	--sl-color-gray-6: #1c1c1e;
+	--sl-color-gray-7: #0e0e0f;
+	--sl-color-black: #000000;
+
+	--sl-color-accent-low: #1c1c1e;
+	--sl-color-accent: #ffffff;
+	--sl-color-accent-high: #ffffff;
+
+	--sl-color-text: #c7c7cc;
+	--sl-color-text-accent: #ffffff;
+	--sl-color-text-invert: #000000;
+	--sl-color-bg: #000000;
+	--sl-color-bg-nav: #000000;
+	--sl-color-bg-sidebar: #000000;
+	--sl-color-bg-inline-code: #1c1c1e;
+	--sl-color-bg-accent: #ffffff;
+	--sl-color-hairline-light: #2c2c2e;
+	--sl-color-hairline: #1c1c1e;
+	--sl-color-hairline-shade: #000000;
+	--sl-color-backdrop-overlay: rgb(0 0 0 / 0.8);
+
+	--sl-text-h1: 2.5rem;
+	--sl-text-h2: 1.75rem;
+	--sl-text-h3: 1.375rem;
+	--sl-line-height: 1.6;
+	--sl-content-width: 46rem;
+	--sl-nav-height: 4.5rem;
+}
+
+@media (min-width: 50rem) {
+	:root,
+	:root[data-theme='light'] {
+		--sl-text-h1: 3.75rem;
+		--sl-text-h2: 2rem;
+		--sl-nav-pad-x: 2rem;
+	}
+}
+
+body {
+	background: #000000;
+	font-size: 1.0625rem;
+	-webkit-font-smoothing: antialiased;
+}
+
+/* Site title */
+.site-title {
+	color: #ffffff;
+	font-size: 1.5rem;
+	font-weight: 600;
+	letter-spacing: -0.02em;
+}
+
+header.header {
+	border-bottom-color: var(--sl-color-hairline);
+}
+
+/* Article text */
+.sl-markdown-content {
+	font-size: 1.1875rem;
+	line-height: 1.6;
+}
+.sl-markdown-content :is(h2, h3) {
+	color: #ffffff;
+	font-weight: 600;
+	letter-spacing: -0.02em;
+	line-height: 1.25;
+}
+.sl-markdown-content h2 {
+	margin-top: 3.5rem;
+}
+.sl-markdown-content :is(h2, h3) + * {
+	margin-top: 0.75rem;
+}
+.sl-markdown-content a {
+	color: #ffffff;
+	text-decoration-color: #5a5a5e;
+	text-underline-offset: 0.2em;
+}
+.sl-markdown-content a:hover {
+	text-decoration-color: #ffffff;
+}
+.sl-markdown-content strong {
+	color: #ffffff;
+	font-weight: 500;
+}
+.sl-markdown-content code {
+	color: #ffffff;
+}
+
+/* Sidebar: grey links, white for the current page, uppercase group labels */
+.sidebar-content a {
+	color: var(--sl-color-gray-2);
+	font-size: 1rem;
+}
+.sidebar-content a:hover {
+	color: #ffffff;
+}
+.sidebar-content a[aria-current='page'] {
+	background: none;
+	color: #ffffff;
+	font-weight: 500;
+}
+.sidebar-content .group-label .large {
+	color: var(--sl-color-gray-2);
+	font-size: 0.8125rem;
+	font-weight: 500;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+.sidebar-content summary .caret {
+	display: none;
+}
+.sidebar-content ul ul li {
+	margin-inline-start: 0;
+	border-inline-start: 0;
+	padding-inline-start: 0;
+}
+.sidebar-content a.large {
+	font-weight: 400;
+}
+.sidebar-content a.large[aria-current='page'] {
+	font-weight: 500;
+}
+
+/* Menu button on small screens: a plain white icon */
+.sl-menu-button,
+.sl-menu-button:has(~ :popover-open) {
+	background: none;
+	box-shadow: none;
+	color: #ffffff;
+}
+
+/* No line between the title and the article */
+.content-panel + .content-panel {
+	border-top: 0;
+}
+
+/* The title is already at the top of the page, so "On this page" lists only the sections */
+:is(.right-sidebar-panel, mobile-starlight-toc) li:has(> a[href='#_top']) {
+	display: none;
+}
+.right-sidebar-panel nav a {
+	font-size: 0.9375rem;
+}
+
+/* On this page: a line beside each heading, white for the current one */
+.right-sidebar-panel h2 {
+	color: var(--sl-color-gray-2);
+	font-size: 0.8125rem;
+	font-weight: 500;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+.right-sidebar-panel nav a {
+	border-inline-start: 2px solid #2c2c2e;
+	padding-inline-start: 0.75rem;
+	color: var(--sl-color-gray-2);
+}
+.right-sidebar-panel nav a[aria-current='true'] {
+	border-inline-start-color: #ffffff;
+	color: #ffffff;
+	font-weight: 500;
+}
+
+/* On this page on small screens */
+mobile-starlight-toc nav {
+	border-bottom-color: var(--sl-color-hairline);
+}
+mobile-starlight-toc .toggle {
+	border-color: #2c2c2e;
+	border-radius: 0.75rem;
+	color: #ffffff;
+}
+
+/* Previous and next */
+.pagination-links a {
+	border-color: #2c2c2e;
+	border-radius: 0.75rem;
+	box-shadow: none;
+	color: #ffffff;
+}
+.pagination-links a:hover {
+	border-color: #5a5a5e;
+}
+.pagination-links .link-title {
+	font-weight: 500;
+}

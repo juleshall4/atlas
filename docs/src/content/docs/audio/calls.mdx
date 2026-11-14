@@ -1,0 +1,25 @@
+---
+title: Calls
+description: Make voices clearer in WhatsApp and other app calls on the speaker.
+---
+
+import Setting from '../../../components/Setting.astro';
+
+## Clearer calls
+
+Clearer calls works in WhatsApp and other apps that make calls over the internet, when you use the speaker. Normal phone calls sound the same as before.
+
+To find out when an app call starts, Atlas needs a permission that you can only give from a computer.
+
+1. Connect your phone to a computer with USB debugging on.
+2. On the computer, run this command once:
+
+   ```sh
+   adb shell pm grant com.atlas android.permission.DUMP
+   ```
+
+3. In Atlas, open **Audio** and turn on **Clearer calls**.
+
+<Setting path={['Audio']} name="Clearer calls" on />
+
+Atlas uses this permission only to find app calls. It reads nothing else.

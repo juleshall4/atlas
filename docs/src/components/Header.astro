@@ -1,0 +1,50 @@
+---
+import Search from 'virtual:starlight/components/Search';
+import SiteTitle from 'virtual:starlight/components/SiteTitle';
+---
+
+<div class="header">
+	<div class="title"><SiteTitle /></div>
+	<div class="right">
+		<nav class="links" aria-label="Atlas">
+			<a href="https://github.com/juleshall4/atlas/releases/latest">Download</a>
+			<a href="https://github.com/juleshall4/atlas">GitHub</a>
+		</nav>
+		<Search />
+	</div>
+</div>
+
+<style>
+	.header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--sl-nav-gap);
+		height: 100%;
+	}
+	.title {
+		min-width: 0;
+	}
+	.right {
+		display: flex;
+		align-items: center;
+		gap: 1.75rem;
+	}
+	.links {
+		display: none;
+		gap: 1.75rem;
+	}
+	.links a {
+		color: var(--sl-color-gray-2);
+		text-decoration: none;
+		font-size: var(--sl-text-base);
+	}
+	.links a:hover {
+		color: var(--sl-color-white);
+	}
+	@media (min-width: 50rem) {
+		.links {
+			display: flex;
+		}
+	}
+</style>

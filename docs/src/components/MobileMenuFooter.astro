@@ -1,0 +1,22 @@
+---
+// The top bar has no room for these links on small screens, so the menu shows them.
+---
+
+<nav class="links" aria-label="Atlas">
+	<a href="https://github.com/juleshall4/atlas/releases/latest">Download</a>
+	<a href="https://github.com/juleshall4/atlas">GitHub</a>
+</nav>
+
+<style>
+	.links {
+		display: flex;
+		gap: 1.75rem;
+		/* Line up with the sidebar links above. */
+		padding: 1rem 0.5rem;
+		border-top: 1px solid var(--sl-color-hairline);
+	}
+	.links a {
+		color: var(--sl-color-gray-2);
+		text-decoration: none;
+	}
+</style>

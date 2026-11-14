@@ -1,0 +1,45 @@
+---
+// Starlight's "On this page" links to the title by this ID.
+const PAGE_TITLE_ID = '_top';
+const { entry, sidebar } = Astro.locals.starlightRoute;
+
+// The sidebar group that holds this page, such as "Keyboard", shows above the title.
+type Item = (typeof sidebar)[number];
+const holds = (item: Item): boolean =>
+	item.type === 'link' ? item.isCurrent : item.entries.some(holds);
+const group = sidebar.find((item) => item.type === 'group' && holds(item))?.label;
+---
+
+<div class="page-title">
+	{group && <p class="group">{group}</p>}
+	<h1 id={PAGE_TITLE_ID}>{entry.data.title}</h1>
+	{entry.data.description && <p class="lede">{entry.data.description}</p>}
+</div>
+
+<style>
+	.page-title {
+		margin-top: 1rem;
+	}
+	.group {
+		margin: 0 0 0.5rem;
+		color: var(--sl-color-gray-2);
+		font-size: var(--sl-text-sm);
+		font-weight: 500;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+	}
+	h1 {
+		margin: 0;
+		color: var(--sl-color-white);
+		font-size: var(--sl-text-h1);
+		font-weight: 600;
+		letter-spacing: -0.03em;
+		line-height: 1.12;
+	}
+	.lede {
+		margin: 1.25rem 0 0;
+		color: var(--sl-color-gray-2);
+		font-size: var(--sl-text-xl);
+		line-height: 1.45;
+	}
+</style>
