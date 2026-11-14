@@ -1,0 +1,11 @@
+{
+	// The guide is a static site: Cloudflare serves the files in dist/ with no Worker code.
+	// Deploy with `bun run build && bunx wrangler deploy`.
+	"name": "atlas",
+	"compatibility_date": "2026-11-10",
+	"assets": {
+		"directory": "./dist",
+		"not_found_handling": "404-page"
+	},
+	"routes": [{ "pattern": "atlas.julian-hall.com", "custom_domain": true }]
+}
