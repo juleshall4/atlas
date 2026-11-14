@@ -83,9 +83,10 @@ class AtlasIme : InputMethodService() {
     private var drainScheduled = false
     private val settlements = LinkedHashMap<Contact.Settlement, Runnable>()
     private val showStrip = Runnable {
-        if (!editing || currentInputBinding == null) return@Runnable
+        if (!editing || currentInputBinding == null) { Log.d("AtlasDiag", "showStrip skip editing=$editing binding=${currentInputBinding != null}"); return@Runnable }
         // Apps can drop a field yet still start input on it, so only a field that answers gets the strip.
-        if (currentInputConnection?.getTextBeforeCursor(1, 0) == null) return@Runnable
+        if (currentInputConnection?.getTextBeforeCursor(1, 0) == null) { Log.d("AtlasDiag", "showStrip skip no text"); return@Runnable }
+        Log.d("AtlasDiag", "showStrip show")
         try {
             // A cancelled show request can leave the client waiting for a window surface.
             showWindow(true)
@@ -98,6 +99,7 @@ class AtlasIme : InputMethodService() {
 
     private val hideStrip = Runnable {
         if (editing) return@Runnable
+        Log.d("AtlasDiag", "hideStrip")
         try {
             hideWindow()
             requestHideSelf(0)
@@ -178,7 +180,7 @@ class AtlasIme : InputMethodService() {
         loadEmoji()
     }
 
-    private fun catchTouchpad(event: MotionEvent) = (editing && touchpad.accepts(event)).also { if (it) motion(event) }
+    private fun catchTouchpad(event: MotionEvent) = (editing.also { if (event.actionMasked != MotionEvent.ACTION_MOVE) Log.d("AtlasDiag", "catch action=${event.actionMasked} editing=$it accepts=${touchpad.accepts(event)} src=${event.source} dev=${event.device?.name}") } && editing && touchpad.accepts(event)).also { if (it) motion(event) }
 
     /** Reads the emoji list away from the main thread, which also loads the emoji font before Sym is first pressed. */
     private fun loadEmoji() {
@@ -216,6 +218,7 @@ class AtlasIme : InputMethodService() {
         editor.cancelState()
         super.onStartInput(info, restarting)
         editing = info.inputType != EditorInfo.TYPE_NULL
+        Log.d("AtlasDiag", "startInput pkg=${info.packageName} type=${info.inputType} restarting=$restarting")
         if (!restarting) {
             typedInField = false
             fieldStartedAt = SystemClock.uptimeMillis()
@@ -269,12 +272,14 @@ class AtlasIme : InputMethodService() {
 
     override fun onWindowShown() {
         super.onWindowShown()
+        Log.d("AtlasDiag", "windowShown")
         // Android draws its hide and switch-keyboard buttons in this bar; the strip has no room for them.
         window.window?.insetsController?.hide(WindowInsets.Type.captionBar())
     }
 
     override fun onWindowHidden() {
         super.onWindowHidden()
+        Log.d("AtlasDiag", "windowHidden editing=$editing typed=$typedInField age=${SystemClock.uptimeMillis() - fieldStartedAt} passingBack=$passingBack")
         // A delayed hide from the previous app arrives just after this field starts. A later hide, or one
         // after you have typed, is the app's own, such as a tap outside the field or a Done key.
         main.removeCallbacks(showStrip)
@@ -295,6 +300,7 @@ class AtlasIme : InputMethodService() {
     }
 
     override fun onFinishInput() {
+        Log.d("AtlasDiag", "finishInput")
         preserveDestinationInput()
         // The old connection is still owned here; only a verified final explicit choice is learned.
         composer.stop(terminal = true)
@@ -335,13 +341,14 @@ class AtlasIme : InputMethodService() {
 
     /** While the strip is hidden, the touchpad reaches the keyboard through the focused app. */
     override fun onGenericMotionEvent(event: MotionEvent): Boolean {
+        if (event.actionMasked != MotionEvent.ACTION_MOVE) Log.d("AtlasDiag", "generic action=${event.actionMasked} editing=$editing accepts=${touchpad.accepts(event)}")
         if (!editing || !touchpad.accepts(event)) return super.onGenericMotionEvent(event)
         motion(event)
         return true
     }
 
     private fun motion(event: MotionEvent) {
-        if (!field.words) return
+        if (!field.words) { Log.d("AtlasDiag", "motion skip field=$field"); return }
         typedInField = true
         val samples = touchpad.samples(event)
         when (touchpad.action(event)) {
@@ -359,6 +366,7 @@ class AtlasIme : InputMethodService() {
                     return
                 }
                 contact.move(samples.drop(1))
+                Log.d("AtlasDiag", "down ${contact.diag()} first=$first now=${SystemClock.uptimeMillis()} paging=$stripPaging swipe=$swipeTyping")
                 endCursor()
                 // Alt and Sym turn swipes into strip pages, so the cursor waits until they are off.
                 // Cursor mode waits until typing ends. The finger that pushed Space cannot start it until it lifts.
@@ -399,6 +407,7 @@ class AtlasIme : InputMethodService() {
                 }
                 endCursor()
                 val points = contact.points
+                Log.d("AtlasDiag", "up points=${points.size} travel=${contact.travel}")
                 contact.up(samples, SystemClock.uptimeMillis())?.let { pending ->
                     if (settlements.size == Contact.MAX_PENDING_CONTACTS || !makeRoom()) {
                         contact.settle(pending, pending.deadline)
@@ -409,6 +418,7 @@ class AtlasIme : InputMethodService() {
                     val settle = Runnable {
                         settlements.remove(pending)
                         val result = contact.settle(pending, SystemClock.uptimeMillis())
+                        Log.d("AtlasDiag", "settled ${result?.javaClass?.simpleName} cancelled=${pending.cancelled}")
                         input.action = { result?.let(::outcome) }
                         input.ready = true
                         drainInput()
@@ -709,6 +719,7 @@ class AtlasIme : InputMethodService() {
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+        Log.d("AtlasDiag", "keyDown $keyCode gesture=${touchpad.isGestureKey(event)} editing=$editing dev=${event.device?.name}")
         if (KeyCapture.waiting?.invoke(event) == true) return true
         // Android hands back to a shown keyboard first, which would only close the strip.
         if (keyCode == KeyEvent.KEYCODE_BACK && editing && isInputViewShown) return true
