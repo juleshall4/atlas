@@ -7,6 +7,7 @@
 	color-scheme: dark;
 
 	--sl-font: 'Inter Variable', 'Inter', system-ui, sans-serif;
+	font-optical-sizing: auto;
 
 	--sl-color-white: #ffffff;
 	--sl-color-gray-1: #e5e5ea;
@@ -35,45 +36,117 @@
 	--sl-color-hairline-shade: #000000;
 	--sl-color-backdrop-overlay: rgb(0 0 0 / 0.8);
 
-	--sl-text-h1: 2.5rem;
-	--sl-text-h2: 1.75rem;
-	--sl-text-h3: 1.375rem;
+	--sl-text-h1: 2.25rem;
+	--sl-text-h2: 1.375rem;
+	--sl-text-h3: 1.125rem;
+	--sl-mobile-toc-height: 3.75rem;
 	--sl-line-height: 1.6;
 	--sl-content-width: 46rem;
 	--sl-nav-height: 4.5rem;
+	--sl-nav-pad-x: 1.5rem;
+	--sl-sidebar-pad-x: 1.5rem;
+	--sl-content-pad-x: 1.5rem;
 }
 
+
+/* Wide screens: the mockup's columns. Sidebar 224px and article 760px, with 32px page margins. */
 @media (min-width: 50rem) {
 	:root,
 	:root[data-theme='light'] {
-		--sl-text-h1: 3.75rem;
-		--sl-text-h2: 2rem;
+		--sl-text-h1: 3rem;
+		--sl-text-h2: 1.625rem;
 		--sl-nav-pad-x: 2rem;
+		--sl-sidebar-pad-x: 2rem;
+		--sl-sidebar-width: 18rem;
+		--sl-content-pad-x: 2rem;
+		--sl-content-width: 47.5rem;
 	}
 }
 
 body {
 	background: #000000;
-	font-size: 1.0625rem;
 	-webkit-font-smoothing: antialiased;
 }
 
-/* Site title */
+/* Top bar */
 .site-title {
 	color: #ffffff;
 	font-size: 1.5rem;
 	font-weight: 600;
 	letter-spacing: -0.02em;
 }
-
 header.header {
 	border-bottom-color: var(--sl-color-hairline);
 }
 
+/* Search is an icon, as in the mockup */
+site-search button[data-open-modal] {
+	border: 0;
+	background: none;
+	padding: 0;
+	color: var(--sl-color-gray-2);
+}
+site-search button[data-open-modal]:hover {
+	color: #ffffff;
+}
+site-search button[data-open-modal] > :is(span, kbd) {
+	display: none !important;
+}
+site-search button[data-open-modal] svg {
+	width: 1.25rem;
+	height: 1.25rem;
+}
+@media (max-width: 49.99rem) {
+	site-search button[data-open-modal] {
+		color: #ffffff;
+	}
+	site-search button[data-open-modal] svg {
+		width: 1.5rem;
+		height: 1.5rem;
+	}
+}
+
+/* Menu button on small screens: a plain white icon */
+.sl-menu-button,
+.sl-menu-button:has(~ :popover-open) {
+	background: none;
+	box-shadow: none;
+	color: #ffffff;
+}
+
+/* No lines beside the sidebars or under the title */
+.sidebar-pane,
+.right-sidebar {
+	border-inline: 0 !important;
+}
+.content-panel + .content-panel {
+	border-top: 0;
+	padding-top: 0;
+}
+
+/* The article sits in the middle of the space next to the sidebar */
+@media (min-width: 72rem) {
+	[data-has-sidebar][data-has-toc] .main-pane {
+		width: calc(100% - var(--sl-sidebar-width));
+	}
+	.right-sidebar-container {
+		width: var(--sl-sidebar-width);
+	}
+	.content-panel .sl-container {
+		margin-inline: auto;
+	}
+}
+@media (min-width: 50rem) {
+	.main-frame .content-panel:first-child {
+		padding-top: 2.5rem;
+	}
+}
+
 /* Article text */
 .sl-markdown-content {
-	font-size: 1.1875rem;
-	line-height: 1.6;
+	color: #c7c7cc;
+	font-size: 1.0625rem;
+	line-height: 1.75rem;
 }
 .sl-markdown-content :is(h2, h3) {
 	color: #ffffff;
@@ -81,11 +154,14 @@ header.header {
 	letter-spacing: -0.02em;
 	line-height: 1.25;
 }
-.sl-markdown-content h2 {
-	margin-top: 3.5rem;
+.sl-markdown-content .sl-heading-wrapper.level-h2 {
+	margin-top: 3rem;
 }
-.sl-markdown-content :is(h2, h3) + * {
-	margin-top: 0.75rem;
+.sl-markdown-content > .sl-heading-wrapper.level-h2:first-child {
+	margin-top: 1rem;
+}
+.sl-markdown-content :is(.sl-heading-wrapper, h2, h3) + * {
+	margin-top: 1rem;
 }
 .sl-markdown-content a {
 	color: #ffffff;
@@ -102,102 +178,169 @@ header.header {
 .sl-markdown-content code {
 	color: #ffffff;
 }
+@media (max-width: 49.99rem) {
+	.sl-markdown-content {
+		font-size: 1rem;
+		line-height: 1.625rem;
+	}
+	.sl-markdown-content .sl-heading-wrapper.level-h2 {
+		margin-top: 2.75rem;
+	}
+	.sl-markdown-content > .sl-heading-wrapper.level-h2:first-child {
+		margin-top: 2.5rem;
+	}
+	.sl-markdown-content :is(.sl-heading-wrapper, h2, h3) + * {
+		margin-top: 0.625rem;
+	}
+}
 
-/* Sidebar: grey links, white for the current page, uppercase group labels */
-.sidebar-content a {
-	color: var(--sl-color-gray-2);
-	font-size: 1rem;
+/* On this page: a short line beside each heading, white for the current one */
+.right-sidebar-panel {
+	padding-top: 3.5rem;
 }
-.sidebar-content a:hover {
-	color: #ffffff;
-}
-.sidebar-content a[aria-current='page'] {
-	background: none;
-	color: #ffffff;
-	font-weight: 500;
-}
-.sidebar-content .group-label .large {
+.right-sidebar-panel h2 {
+	margin-bottom: 0.625rem;
 	color: var(--sl-color-gray-2);
 	font-size: 0.8125rem;
 	font-weight: 500;
 	letter-spacing: 0.06em;
 	text-transform: uppercase;
 }
-.sidebar-content summary .caret {
-	display: none;
+.right-sidebar-panel nav ul {
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
 }
-.sidebar-content ul ul li {
-	margin-inline-start: 0;
-	border-inline-start: 0;
-	padding-inline-start: 0;
+.right-sidebar-panel nav a {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	padding: 0.375rem 0;
+	border: 0;
+	color: var(--sl-color-gray-2);
+	font-size: 0.9375rem;
+	line-height: 1.375rem;
 }
-.sidebar-content a.large {
-	font-weight: 400;
+.right-sidebar-panel nav a::before {
+	content: '';
+	flex-shrink: 0;
+	width: 2px;
+	height: 1.25rem;
+	background: #2c2c2e;
 }
-.sidebar-content a.large[aria-current='page'] {
+.right-sidebar-panel nav a[aria-current='true'] {
+	color: #ffffff;
 	font-weight: 500;
 }
-
-/* Menu button on small screens: a plain white icon */
-.sl-menu-button,
-.sl-menu-button:has(~ :popover-open) {
-	background: none;
-	box-shadow: none;
-	color: #ffffff;
-}
-
-/* No line between the title and the article */
-.content-panel + .content-panel {
-	border-top: 0;
+.right-sidebar-panel nav a[aria-current='true']::before {
+	background: #ffffff;
 }
 
 /* The title is already at the top of the page, so "On this page" lists only the sections */
 :is(.right-sidebar-panel, mobile-starlight-toc) li:has(> a[href='#_top']) {
 	display: none;
 }
-.right-sidebar-panel nav a {
-	font-size: 0.9375rem;
-}
 
-/* On this page: a line beside each heading, white for the current one */
-.right-sidebar-panel h2 {
-	color: var(--sl-color-gray-2);
-	font-size: 0.8125rem;
-	font-weight: 500;
-	letter-spacing: 0.06em;
-	text-transform: uppercase;
-}
-.right-sidebar-panel nav a {
-	border-inline-start: 2px solid #2c2c2e;
-	padding-inline-start: 0.75rem;
-	color: var(--sl-color-gray-2);
-}
-.right-sidebar-panel nav a[aria-current='true'] {
-	border-inline-start-color: #ffffff;
-	color: #ffffff;
-	font-weight: 500;
-}
-
-/* On this page on small screens */
+/* On this page on small screens: one full-width row under the top bar */
 mobile-starlight-toc nav {
+	border-top-color: var(--sl-color-hairline);
+}
+mobile-starlight-toc summary {
+	padding: 0.5rem var(--sl-content-pad-x);
 	border-bottom-color: var(--sl-color-hairline);
 }
 mobile-starlight-toc .toggle {
+	flex: 1;
+	padding: 0.625rem 0.75rem 0.625rem 1rem;
 	border-color: #2c2c2e;
 	border-radius: 0.75rem;
+	color: #ffffff;
+	font-size: 0.9375rem;
+	font-weight: 500;
+}
+mobile-starlight-toc .display-current {
+	display: none;
+}
+mobile-starlight-toc .dropdown a {
+	padding-inline: var(--sl-content-pad-x);
+	color: var(--sl-color-gray-2);
+	font-size: 1rem;
+}
+mobile-starlight-toc .dropdown a[aria-current='true'] {
 	color: #ffffff;
 }
 
-/* Previous and next */
+/* Menu button: the same size as the search icon */
+.sl-menu-button svg {
+	width: 1.5rem;
+	height: 1.5rem;
+}
+
+/* Previous and next: a small grey label over the page name, no arrows */
+footer .meta:not(:has(*)) {
+	display: none;
+}
+.pagination-links {
+	margin-top: 2.5rem;
+}
 .pagination-links a {
+	padding: 1.25rem 1.5rem;
 	border-color: #2c2c2e;
 	border-radius: 0.75rem;
 	box-shadow: none;
-	color: #ffffff;
+	color: var(--sl-color-gray-2);
+	font-size: 0.875rem;
+	line-height: 1.25rem;
 }
 .pagination-links a:hover {
 	border-color: #5a5a5e;
 }
+.pagination-links :is(svg, br) {
+	display: none;
+}
 .pagination-links .link-title {
+	display: block;
+	margin-top: 0.375rem;
+	color: #ffffff;
+	font-size: 1.0625rem;
 	font-weight: 500;
+	line-height: 1.5rem;
+}
+
+/* Tables: plain rows with thin lines, no stripes */
+.sl-markdown-content table {
+	display: table;
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.9375rem;
+	line-height: 1.5rem;
+}
+.sl-markdown-content :is(th, td) {
+	padding: 0.75rem 1.25rem 0.75rem 0;
+	border: 0;
+	border-bottom: 1px solid var(--sl-color-gray-6);
+	background: none;
+	text-align: start;
+	vertical-align: top;
+}
+.sl-markdown-content th {
+	border-bottom-color: var(--sl-color-gray-5);
+	color: var(--sl-color-gray-2);
+	font-size: 0.8125rem;
+	font-weight: 500;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+.sl-markdown-content :is(th, td):first-child {
+	white-space: nowrap;
+	color: #ffffff;
+}
+.sl-markdown-content tr {
+	background: none !important;
+}
+.sl-markdown-content th:first-child {
+	color: var(--sl-color-gray-2);
+}
+.sl-menu-button {
+	padding: 0.25rem;
 }
