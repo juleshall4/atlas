@@ -62,6 +62,8 @@ export const guide: { title: string; rows: GuideRow[] }[] = [
     title: "Audio", rows: [
       { title: "Better media", text: "The phone speaker can sound thin and distort at high volume. Atlas makes it sound fuller and clearer for music, video and games. Open Audio and set Better media to on. Headphones and Bluetooth do not change.",
         terms: ["sound", "speaker", "media", "music", "video", "games", "podcasts", "volume", "bass", "tinny", "loud", "distortion", "equaliser", "equalizer", "eq", "quality", "audio"] },
+      { title: "Speaker profiles", text: "Better media has seven profiles. Atlas is the default. Clear is for music, and makes busy songs less muffled. Warm is softer. Voice is for podcasts and videos. Natural changes the sound less. Quiet is for low volume. heybroo0 has more bass and treble. To change the profile, open Audio, then Profile.",
+        terms: ["profile", "preset", "eq", "equaliser", "equalizer", "muffled", "clear", "warm", "voice", "natural", "quiet", "heybroo0", "podcast", "treble", "bass"] },
       { title: "Clearer calls", text: "Atlas can make voices clearer in WhatsApp and other app calls on the speaker. Connect the phone to a computer and run this adb command one time: adb shell pm grant com.atlas android.permission.DUMP. Then open Audio and set Clearer calls to on. Normal phone calls do not change.",
         terms: ["call", "calls", "whatsapp", "voip", "voice", "speakerphone", "adb", "permission", "dump", "phone call"] },
     ],

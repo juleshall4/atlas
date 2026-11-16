@@ -324,6 +324,7 @@ private class AtlasAdapter(private val activity: MainActivity) : NativeAdapter, 
             .put("shortcuts", shortcuts)
             .put("music", Engine.music(activity))
             .put("calls", Engine.calls(activity))
+            .put("speakerProfile", Engine.profile(activity))
             .put("callsCommand", if (Calls.allowed(activity)) JSONObject.NULL else Calls.command(activity))
     }
 
@@ -400,6 +401,7 @@ private class AtlasAdapter(private val activity: MainActivity) : NativeAdapter, 
                 Engine.setMusic(value as Boolean)
                 SpeakerService.sync(activity)
             }
+            "speakerProfile" -> Engine.setProfile(value as String)
             "calls" -> {
                 Engine.setCalls(value as Boolean)
                 SpeakerService.sync(activity)

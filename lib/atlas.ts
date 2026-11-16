@@ -3,6 +3,7 @@ import { callNative, onNativeMessage } from "ink/native";
 
 export type HapticPreset = "normal" | "strong";
 export type Spelling = "british" | "american";
+export type SpeakerProfile = "atlas" | "clear" | "warm" | "voice" | "natural" | "quiet" | "heybroo0";
 export type SkinTone = "default" | "light" | "medium-light" | "medium" | "medium-dark" | "dark";
 
 export type State = {
@@ -51,6 +52,8 @@ export type State = {
   shortcuts: Shortcut[];
   /** The speaker is tuned for media, such as music, video and games. */
   music: boolean;
+  /** How Better media sounds. Each profile changes the Atlas curve. */
+  speakerProfile: SpeakerProfile;
   /** The speaker is tuned for calls in apps such as WhatsApp. */
   calls: boolean;
   /** The adb command that lets Atlas tune calls, or null when it has been run. */
@@ -62,7 +65,7 @@ export type Shortcut = { letter: string; app: string; name: string };
 /** An app with a launcher icon. `icon` is a picture of it, or null when it cannot be drawn. */
 export type App = { app: string; name: string; icon: string | null };
 
-export type Settings = Pick<State, "learning" | "tapKeys" | "autoCapitalise" | "autoPunctuation" | "suggestionBar" | "cursorControl" | "touchLight" | "swipeTyping" | "liftOff" | "liftOffMillis" | "haptics" | "hapticPreset" | "spelling" | "skinTone" | "openApps" | "shortcutAnimation" | "actions" | "music" | "calls">;
+export type Settings = Pick<State, "learning" | "tapKeys" | "autoCapitalise" | "autoPunctuation" | "suggestionBar" | "cursorControl" | "touchLight" | "swipeTyping" | "liftOff" | "liftOffMillis" | "haptics" | "hapticPreset" | "spelling" | "skinTone" | "openApps" | "shortcutAnimation" | "actions" | "music" | "speakerProfile" | "calls">;
 
 /** Touchpad points from 0 to 1 across the keyboard and down its four rows. */
 export type Point = [x: number, y: number];

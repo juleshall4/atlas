@@ -1,6 +1,7 @@
-import { Row, Screen, Section, Toggle, useAction, useSnapshot } from "ink";
+import { Field, Row, Screen, Section, Toggle, useAction, useSnapshot } from "ink";
 import { contentCopy } from "ink/icons";
 import { copy, state, update } from "../../lib/atlas";
+import { speakerProfileLabel } from "./speaker-profile";
 
 export default function Audio() {
   const result = useSnapshot(state);
@@ -11,6 +12,7 @@ export default function Audio() {
   return <Screen title="Audio">
     <Section title="Speaker">
       <Toggle label="Better media" value={settings.music} onChange={music => save.run({ music })} />
+      {settings.music && <Field label="Profile" href="/settings/speaker-profile">{speakerProfileLabel(settings)}</Field>}
       <Toggle label="Clearer calls" value={settings.calls && !command} disabled={command != null} onChange={calls => save.run({ calls })} />
       {command && <>
         <Row title="Calls need this adb command" subtitle={command} wrapSubtitle />

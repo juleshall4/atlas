@@ -30,6 +30,26 @@ object Engine {
         -10.9f, -10.3f, -6.9f, -7.9f, -3.7f, -3.4f, 2.3f, -0.6f, 3.7f, 2.4f,
     )
 
+    /**
+     * Profiles change the Atlas curve by these amounts (dB) in the same bands. Atlas changes nothing.
+     * The first band stays as Atlas has it, because that cut keeps the driver safe.
+     */
+    private val profiles = mapOf(
+        "atlas" to FloatArray(cutoffs.size),
+        // Less low-mid boost and more presence, so busy music is not muffled.
+        "clear" to floatArrayOf(0f, 0f, -2f, -3f, -3f, -2f, -3f, -3f, -1f, 0f, 2f, 3f, 3f, 2f, 1f, 1f, 1f, 2f, 2f, 1f),
+        // A little more body and softer highs, for long listening.
+        "warm" to floatArrayOf(0f, 0f, 1f, 1f, 1f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, -1f, -1f, -2f, -2f, -2f, -2f, -3f, -3f),
+        // Speech: less boom, more of the range where words are clear.
+        "voice" to floatArrayOf(0f, -3f, -4f, -4f, -3f, -1f, 0f, 0f, 1f, 2f, 4f, 4f, 3f, 2f, 1f, 0f, -1f, -2f, -2f, -2f),
+        // Half the Atlas correction above the first band, for a less processed sound.
+        "natural" to FloatArray(cutoffs.size) { if (it == 0) 0f else -gains[it] / 2 },
+        // Loudness contour: low volume loses bass and treble first, so those come up a little.
+        "quiet" to floatArrayOf(0f, 2f, 2f, 1f, 0f, 0f, 0f, 0f, 0f, 0f, -1f, -1f, 0f, 0f, 1f, 2f, 2f, 2f, 2f, 1f),
+        // A 10-band curve (31 Hz to 16 kHz) moved onto these bands: more bass and air, a dip near 3 kHz.
+        "heybroo0" to floatArrayOf(0f, 5f, 5f, 4.3f, 3.7f, 3.1f, 2.2f, 1.2f, 0.3f, -0.4f, -1f, -1.6f, -1.9f, -2.2f, -2.2f, -0.7f, 0.9f, 2.3f, 3.3f, 4.9f),
+    )
+
     /** One compressor band: upper edge (Hz), attack and release (ms), ratio, threshold and makeup gain (dB). */
     private class Band(val edge: Float, val attack: Float, val release: Float, val ratio: Float, val threshold: Float, val gain: Float)
 
@@ -80,6 +100,15 @@ object Engine {
     fun music(context: Context) = prefs(context).getBoolean("music", false)
 
     fun calls(context: Context) = prefs(context).getBoolean("calls", false)
+
+    fun profile(context: Context) = prefs(context).getString("profile", null)?.takeIf { it in profiles } ?: "atlas"
+
+    @Synchronized
+    fun setProfile(name: String) {
+        require(name in profiles) { "Unknown speaker profile: $name" }
+        prefs(app).edit().putString("profile", name).apply()
+        apply()
+    }
 
     /** Whether the service should run: for music, calls or both. */
     fun wanted(context: Context) = music(context) || calls(context)
@@ -140,7 +169,8 @@ object Engine {
     private fun apply() {
         val dp = effect ?: return
         val eq = DynamicsProcessing.Eq(true, true, cutoffs.size)
-        cutoffs.indices.forEach { eq.setBand(it, DynamicsProcessing.EqBand(true, cutoffs[it], gains[it])) }
+        val offsets = profiles.getValue(profile(app))
+        cutoffs.indices.forEach { eq.setBand(it, DynamicsProcessing.EqBand(true, cutoffs[it], gains[it] + offsets[it])) }
         // The compressor keeps loud bass within what the driver can take; the limiter stops clipping.
         val mbcBands = bands(audio.getStreamVolume(AudioManager.STREAM_MUSIC))
         val mbc = DynamicsProcessing.Mbc(true, true, mbcBands.size)
