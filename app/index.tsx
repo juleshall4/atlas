@@ -1,4 +1,5 @@
-import { Field, Screen, Section, useSnapshot } from "ink";
+import { Field, Row, Screen, Section, useSnapshot } from "ink";
+import { arrowOutward } from "ink/icons";
 import { markNotesSeen, state } from "../lib/atlas";
 import { hasReleaseNotes } from "../lib/release-notes";
 import { WhatsNew } from "../lib/whats-new";
@@ -15,9 +16,8 @@ export default function Home() {
       <Field label="Audio" href="/settings/audio" />
     </Section>
     <Section title="Help">
-      <Field label="Guide" url="https://atlas.julian-hall.com" />
+      <Row title="Guide" endIcon={arrowOutward} url="https://atlas.julian-hall.com" />
       <Field label="Send feedback" href="/settings/feedback" />
-      {hasReleaseNotes(version) && <Field label="What's new" href="/settings/whats-new" />}
       <Field label="About" href="/settings/about" />
     </Section>
   </Screen>;
