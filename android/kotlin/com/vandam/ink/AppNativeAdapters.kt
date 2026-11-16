@@ -4,9 +4,11 @@ import android.app.Activity
 import android.app.Application
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.ComponentCallbacks
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.database.ContentObserver
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -58,6 +60,12 @@ private class AtlasAdapter(private val activity: MainActivity) : NativeAdapter, 
 
     private fun publishState() = activity.emit(JSONObject().put("type", "atlas-state").toString())
 
+    // Atlas handles uiMode changes itself, so the screens hear about a new phone theme from here.
+    private val systemTheme = object : ComponentCallbacks {
+        override fun onConfigurationChanged(configuration: Configuration) = publishState()
+        override fun onLowMemory() = Unit
+    }
+
     private val handler = Handler(Looper.getMainLooper())
     // Android gives apps no event when adb grants DUMP, so check while Atlas is open until it is granted.
     private val callsCheck = object : Runnable {
@@ -68,6 +76,7 @@ private class AtlasAdapter(private val activity: MainActivity) : NativeAdapter, 
 
     init {
         activity.application.registerActivityLifecycleCallbacks(this)
+        activity.application.registerComponentCallbacks(systemTheme)
         // Enabling and choosing the keyboard happen outside the app; the screens follow as they change.
         for (setting in listOf(Settings.Secure.ENABLED_INPUT_METHODS, Settings.Secure.DEFAULT_INPUT_METHOD,
                 Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES))
@@ -119,6 +128,7 @@ private class AtlasAdapter(private val activity: MainActivity) : NativeAdapter, 
         keyCaptureRequested = false
         activity.contentResolver.unregisterContentObserver(keyboardSettings)
         activity.application.unregisterActivityLifecycleCallbacks(this)
+        activity.application.unregisterComponentCallbacks(systemTheme)
     }
 
     override fun onActivityCreated(target: Activity, state: Bundle?) = Unit
@@ -316,6 +326,8 @@ private class AtlasAdapter(private val activity: MainActivity) : NativeAdapter, 
             .put("hapticPreset", Haptics.preset(activity).id)
             .put("spelling", if (TypingSettings.spelling(activity) == EnglishSpelling.Variant.AMERICAN) "american" else "british")
             .put("skinTone", TypingSettings.skinTone(activity).id)
+            .put("appearance", TypingSettings.appearance(activity))
+            .put("dark", TypingSettings.dark(activity))
             .put("words", words)
             .put("blockedWords", JSONArray(typing.blockedWords().toList()))
             .put("openApps", AppShortcuts.enabled(activity))
@@ -397,6 +409,7 @@ private class AtlasAdapter(private val activity: MainActivity) : NativeAdapter, 
             "spelling" -> TypingSettings.spelling(activity,
                 if (value == "american") EnglishSpelling.Variant.AMERICAN else EnglishSpelling.Variant.BRITISH)
             "skinTone" -> TypingSettings.skinTone(activity, EmojiPages.Tone.of(value as String))
+            "appearance" -> TypingSettings.appearance(activity, value as String)
             "music" -> {
                 Engine.setMusic(value as Boolean)
                 SpeakerService.sync(activity)

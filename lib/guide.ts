@@ -44,6 +44,8 @@ export const guide: { title: string; rows: GuideRow[] }[] = [
         terms: ["emoji search", "search emoji", "find emoji", "look up emoji", "type emoji name", "emoji name", "sym and type", "no emoji found"] },
       { title: "Skin tone", text: "To change the skin tone of emoji with hands and people, open Keyboard, then Skin tone.",
         terms: ["skin colour", "skin color", "emoji colour", "emoji color", "hand colour", "dark skin", "light skin", "brown", "yellow emoji", "fitzpatrick"] },
+      { title: "Light or dark colours", text: "Open Display, then Appearance. Select Light, Dark or System. System uses the dark theme setting of your phone. The suggestion bar changes too.",
+        terms: ["light mode", "dark mode", "dark theme", "light theme", "night mode", "white background", "black background", "theme", "colours", "colors", "brightness"] },
       { title: "Change the keyboard", text: "Push and hold Sym. Then select a different keyboard from the list.",
         terms: ["switch keyboard", "change keyboard", "other keyboard", "another keyboard", "keyboard list", "keyboard picker", "input method", "go back", "hold sym", "long press sym"] },
       { title: "Quick open", text: "Open Shortcuts and set Quick open to on. Then hold Fn and push a letter to open an app. You can also push Fn and then push the letter in 1 second. To give an app a letter, open Shortcuts and select Apps. Touch the app, then push the letter. A letter opens only one app. To give it to a different app, first remove it from the app that has it. To open apps with no animation, open Shortcuts and set Animation to off.",

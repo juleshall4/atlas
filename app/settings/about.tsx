@@ -1,11 +1,13 @@
-import { Canvas, CanvasText, Row, Screen, Stack, Text, openURL, useSnapshot } from "ink";
+import { Canvas, CanvasText, Row, Screen, Stack, Text, openURL, useColourScheme, useSnapshot } from "ink";
 import { arrowOutward, chevronRight } from "ink/icons";
 import { state } from "../../lib/atlas";
 import { hasReleaseNotes } from "../../lib/release-notes";
-import icon from "../../assets/atlas-glyph.png";
+import lightIcon from "../../assets/atlas-glyph.png";
+import darkIcon from "../../assets/atlas-glyph-dark.png";
 
 export default function About() {
   const result = useSnapshot(state);
+  const icon = useColourScheme() === "dark" ? lightIcon : darkIcon;
   return <Screen title="About">
     <Stack justify="space-between" align="stretch">
       <Stack gap="content">

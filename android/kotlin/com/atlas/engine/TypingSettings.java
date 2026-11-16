@@ -2,6 +2,7 @@ package com.atlas.engine;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 
 import java.util.Set;
 
@@ -123,6 +124,25 @@ public final class TypingSettings {
 
     public static void skinTone(Context context, EmojiPages.Tone tone) {
         preferences(context).edit().putString("skin_tone", tone.id).apply();
+    }
+
+    /** "system", "light" or "dark": the colours of the app and the suggestion bar. */
+    public static String appearance(Context context) {
+        String value = preferences(context).getString("appearance", "system");
+        return "light".equals(value) || "dark".equals(value) ? value : "system";
+    }
+
+    public static void appearance(Context context, String value) {
+        if (!"system".equals(value) && !"light".equals(value) && !"dark".equals(value))
+            throw new IllegalArgumentException("Unknown appearance: " + value);
+        preferences(context).edit().putString("appearance", value).apply();
+    }
+
+    /** Dark colours, from the appearance setting or, for "system", the phone's dark theme. */
+    public static boolean dark(Context context) {
+        String value = appearance(context);
+        if (!"system".equals(value)) return "dark".equals(value);
+        return (context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
     }
 
     private TypingSettings() {}

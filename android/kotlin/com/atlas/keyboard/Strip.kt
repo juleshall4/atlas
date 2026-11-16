@@ -9,9 +9,11 @@ import android.text.TextUtils
 import android.text.style.ForegroundColorSpan
 import android.view.Gravity
 import android.view.WindowInsets
+import android.view.WindowInsetsController
 import android.widget.LinearLayout
 import android.widget.TextView
 import com.atlas.engine.EmojiPages
+import com.atlas.engine.TypingSettings
 
 /**
  * The bar above the keyboard: word suggestions, or pages of extra symbols while Alt is on, or emoji while Sym is on.
@@ -134,10 +136,13 @@ class Strip(
     }
 
     private fun render() {
-        val dark = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
+        val dark = TypingSettings.dark(context)
         val ink = if (dark) Color.WHITE else Color.BLACK
         val visible = showSuggestions || showPages
         setBackgroundColor(if (!visible) Color.TRANSPARENT else if (dark) Color.BLACK else Color.WHITE)
+        // The gesture handle draws over the strip, so it takes the strip's colours, not the phone's theme.
+        windowInsetsController?.setSystemBarsAppearance(if (dark) 0 else WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS,
+            WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS)
         setPadding(dp(8), 0, dp(8), if (visible) navigationInset else 0)
         // Keep a window for firmware touchpad routing when there is nothing to display.
         minimumHeight = if (visible) 0 else 1

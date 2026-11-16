@@ -2,7 +2,10 @@ import { defineTheme, defineToggle } from "ink/theme";
 
 export default defineTheme({
   fonts: { body: "./assets/fonts/Inter-Regular.otf", display: "./assets/fonts/Inter-Medium.otf" },
-  colours: { background: "#000000", foreground: "#ffffff", muted: "#7f7f84" },
+  colours: {
+    background: "#000000", foreground: "#ffffff", muted: "#7f7f84",
+    light: { background: "#ffffff", foreground: "#000000", muted: "#6e6e73" },
+  },
   text: { size: 45 },
   spacing: { inset: 92, gap: 69, rowGap: 52 },
   // Ink clips the first row's top edge at the scroll viewport.
@@ -19,9 +22,9 @@ export default defineTheme({
     // Ink's toggle row is 69 tall, and a taller switch is cut off at the top of a screen.
     width: 118,
     height: 69,
-    render: ({ on, disabled, colours }) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 76"><g opacity="${disabled ? 0.4 : 1}">
-      <rect width="130" height="76" rx="38" fill="${on ? "#8e8e93" : "#3a3a3c"}"/>
-      <circle cx="${on ? 92 : 38}" cy="38" r="33" fill="${on ? "#f2f2f4" : colours.foreground}"/>
+    render: ({ on, disabled, scheme, colours }) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 76"><g opacity="${disabled ? 0.4 : 1}">
+      <rect width="130" height="76" rx="38" fill="${on ? "#8e8e93" : scheme === "dark" ? "#3a3a3c" : "#d1d1d6"}"/>
+      <circle cx="${on ? 92 : 38}" cy="38" r="33" fill="${on ? (scheme === "dark" ? "#f2f2f4" : "#ffffff") : colours.foreground}"/>
     </g></svg>`,
   }),
 });

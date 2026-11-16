@@ -14,6 +14,7 @@ export default function Home() {
       <Field label="Keyboard" href="/settings/keyboard" />
       <Field label="Shortcuts" href="/settings/shortcuts" />
       <Field label="Audio" href="/settings/audio" />
+      <Field label="Display" href="/settings/display" />
     </Section>
     <Section title="Help">
       <Row title="Guide" endIcon={arrowOutward} url="https://atlas.julian-hall.com" />
