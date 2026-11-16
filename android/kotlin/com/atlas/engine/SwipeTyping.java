@@ -104,11 +104,14 @@ public final class SwipeTyping {
         recogniser = null; typedPredictions = null;
         configuredRevision = -1; configuredDay = -1; activeCount = 0;
         recogniser = new SwipeRecognizer(context);
-        try (Reader vocabulary = new InputStreamReader(context.getAssets().open("swipe/hungry_jellyfish/vocab.txt"), "UTF-8")) {
+        // The copies on disk are already checked and need no unzipping, unlike the ones in the APK.
+        File models = SwipeRecognizer.models(context);
+        File vocabularyFile = new File(models, "hungry_jellyfish/vocab.txt");
+        try (Reader vocabulary = new InputStreamReader(new FileInputStream(vocabularyFile), "UTF-8")) {
             ProperNames.load(vocabulary);
         }
-        try (Reader vocabulary = new InputStreamReader(context.getAssets().open("swipe/hungry_jellyfish/vocab.txt"), "UTF-8");
-             Reader dictionary = new InputStreamReader(context.getAssets().open("swipe/english.combined"), "UTF-8")) {
+        try (Reader vocabulary = new InputStreamReader(new FileInputStream(vocabularyFile), "UTF-8");
+             Reader dictionary = new InputStreamReader(new FileInputStream(new File(models, "english.combined")), "UTF-8")) {
             typedPredictions = new TypedPredictions(vocabulary, dictionary, word -> recogniser.frequency(word));
         }
         syncDictionary(); publish();
@@ -139,7 +142,7 @@ public final class SwipeTyping {
                 if (loadingRetries >= 2) error = "Swipe loading retry limit reached. Restart Atlas to try again.";
                 else {
                     loadingRetries++; readiness = "loading";
-                    try { loadEngine(); }
+                    try { SwipeRecognizer.forgetModels(context); loadEngine(); }
                     catch (IOException | RuntimeException | LinkageError failure) { unavailable(failure); error = loadError; }
                 }
             }
