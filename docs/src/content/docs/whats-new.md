@@ -4,7 +4,7 @@ description: What changed in each version of Atlas, newest first.
 tableOfContents: { maxHeadingLevel: 2 }
 ---
 
-## Version 2.0.0
+## [Version 2.0.0](https://github.com/juleshall4/atlas/releases/tag/v2.0.0)
 
 Released 14 November 2026.
 
@@ -37,7 +37,7 @@ Atlas 2.0 adds shortcuts for opening apps and editing text, emoji search and bet
 - The key where your swipe ends counts for more, so the last letter is right more often.
 - Alt and Backspace delete a whole word only when you hold Alt. A tapped or locked Alt deletes one letter.
 
-## Version 1.3.1
+## [Version 1.3.1](https://github.com/juleshall4/atlas/releases/tag/v1.3.1)
 
 Released 9 November 2026.
 
@@ -45,7 +45,7 @@ Released 9 November 2026.
 
 - Long swipes, such as "investigating", work again. Version 1.3.0 sometimes mistook one finger for two and stopped the swipe.
 
-## Version 1.3.0
+## [Version 1.3.0](https://github.com/juleshall4/atlas/releases/tag/v1.3.0)
 
 Released 9 November 2026.
 
@@ -63,7 +63,7 @@ Released 9 November 2026.
 - Touching a word on the strip gives the same vibration as starting the cursor.
 - When swipe typing is off, the settings for swiping are hidden.
 
-## Version 1.2.0
+## [Version 1.2.0](https://github.com/juleshall4/atlas/releases/tag/v1.2.0)
 
 Released 9 November 2026.
 
@@ -97,7 +97,7 @@ Version 1.2 makes typing with the keys much better, with emoji, spelling correct
 - The strip no longer stays on the screen after an app closes a text field.
 - When you go back to an app, its text field stays open.
 
-## Version 1.1.0
+## [Version 1.1.0](https://github.com/juleshall4/atlas/releases/tag/v1.1.0)
 
 Released 8 November 2026.
 
@@ -113,7 +113,7 @@ Released 8 November 2026.
 - One back swipe closes the strip and goes back.
 - Atlas starts a text field with a capital letter, even when the field has hidden characters at the start.
 
-## Version 1.0.1
+## [Version 1.0.1](https://github.com/juleshall4/atlas/releases/tag/v1.0.1)
 
 Released 8 November 2026.
 
@@ -122,7 +122,7 @@ Released 8 November 2026.
 - The strip stays hidden on your launcher's home screen, so typing to search stays clean.
 - The strip no longer comes back after an app closes a text box.
 
-## Version 1.0.0
+## [Version 1.0.0](https://github.com/juleshall4/atlas/releases/tag/v1.0.0)
 
 Released 8 November 2026.
 
