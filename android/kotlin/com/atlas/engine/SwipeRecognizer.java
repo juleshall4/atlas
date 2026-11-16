@@ -34,6 +34,8 @@ public final class SwipeRecognizer implements AutoCloseable {
     private org.futo.ml.inference.NativeDictionary base, personal, contractions, doubleLetters;
     private Set<String> learnedWords = Set.of();
     private org.futo.ml.inference.SwipeDecoder.Result[] rawResults = new org.futo.ml.inference.SwipeDecoder.Result[0];
+    private String[] nextWordsContext;
+    private Map<String, Double> nextWords;
 
     public org.futo.ml.inference.SwipeDecoder.Result[] rawResults() { return rawResults; }
     public float contextWeight() { return decoder.contextWeight(); }
@@ -157,11 +159,15 @@ public final class SwipeRecognizer implements AutoCloseable {
 
     static String[] scoringContext(String[] context) { return context.length == 0 ? SENTENCE_START : context; }
 
+    /** The earlier words stay the same while a word is typed, so each letter reuses the last answer. */
     public Map<String, Double> nextWords(String[] context) {
+        if (nextWords != null && Arrays.equals(context, nextWordsContext)) return nextWords;
         Map<String, Double> scores = new HashMap<>();
         for (org.futo.ml.inference.SwipeDecoder.Result result : decoder.predictNext(scoringContext(context), NEXT_WORD_CANDIDATES))
             scores.putIfAbsent(TypedPredictions.key(result.word), (double) result.score);
-        return scores;
+        nextWordsContext = context.clone();
+        nextWords = java.util.Collections.unmodifiableMap(scores);
+        return nextWords;
     }
 
     /** The look-alike of this word that the next word makes clearly more likely, or null to leave it. */
