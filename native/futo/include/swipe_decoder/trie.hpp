@@ -70,22 +70,22 @@ public:
 /**
  * Compact trie node for vocabulary lookup.
  *
- * Uses array-based children for O(1) lookup instead of hash map.
+ * Children are a list in alphabet order, linked through next_sibling, so a node costs 24 bytes
+ * instead of a slot for every letter of the alphabet. A dictionary has hundreds of thousands of nodes.
  * Parent pointers enable word reconstruction without storing strings.
  */
 struct TrieNode {
-    // Child indices (0 = no child). Index into node array.
-    uint32_t children[MAX_CHARS] = {0};
+    uint32_t first_child = 0;   // index of the first child (0 = none)
+    uint32_t next_sibling = 0;  // index of the next child of the same parent (0 = none)
+    uint32_t parent = 0;        // parent node index (0 = root)
 
     // Word info
-    bool is_word = false;
     float frequency = 0.0f;
     float log_frequency = -100.0f;
 
-    // Parent chain for word reconstruction
-    uint32_t parent = 0;     // parent node index (0 = root)
-    uint8_t parent_char = 0; // char index on edge from parent (0-25)
-    uint16_t depth = 0;      // depth = word length at this node
+    uint16_t depth = 0;         // depth = word length at this node
+    uint8_t parent_char = 0;    // char index on edge from parent
+    bool is_word = false;
 };
 
 
@@ -138,6 +138,9 @@ public:
      * Check if word exists in vocabulary.
      */
     bool contains(const std::string& word) const;
+
+    /** The child of a node along one letter, or 0 if there is none. */
+    uint32_t child(uint32_t node_idx, int char_idx) const;
 
     /**
      * Reconstruct word by walking the parent chain from a node.

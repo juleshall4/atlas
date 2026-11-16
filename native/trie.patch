@@ -1,0 +1,142 @@
+diff --git a/include/swipe_decoder/trie.hpp b/include/swipe_decoder/trie.hpp
+index 02b0125..6d0b7b0 100644
+--- a/include/swipe_decoder/trie.hpp
++++ b/include/swipe_decoder/trie.hpp
+@@ -70,22 +70,22 @@ public:
+ /**
+  * Compact trie node for vocabulary lookup.
+  *
+- * Uses array-based children for O(1) lookup instead of hash map.
++ * Children are a list in alphabet order, linked through next_sibling, so a node costs 24 bytes
++ * instead of a slot for every letter of the alphabet. A dictionary has hundreds of thousands of nodes.
+  * Parent pointers enable word reconstruction without storing strings.
+  */
+ struct TrieNode {
+-    // Child indices (0 = no child). Index into node array.
+-    uint32_t children[MAX_CHARS] = {0};
++    uint32_t first_child = 0;   // index of the first child (0 = none)
++    uint32_t next_sibling = 0;  // index of the next child of the same parent (0 = none)
++    uint32_t parent = 0;        // parent node index (0 = root)
+ 
+     // Word info
+-    bool is_word = false;
+     float frequency = 0.0f;
+     float log_frequency = -100.0f;
+ 
+-    // Parent chain for word reconstruction
+-    uint32_t parent = 0;     // parent node index (0 = root)
+-    uint8_t parent_char = 0; // char index on edge from parent (0-25)
+-    uint16_t depth = 0;      // depth = word length at this node
++    uint16_t depth = 0;         // depth = word length at this node
++    uint8_t parent_char = 0;    // char index on edge from parent
++    bool is_word = false;
+ };
+ 
+ 
+@@ -139,6 +139,9 @@ public:
+      */
+     bool contains(const std::string& word) const;
+ 
++    /** The child of a node along one letter, or 0 if there is none. */
++    uint32_t child(uint32_t node_idx, int char_idx) const;
++
+     /**
+      * Reconstruct word by walking the parent chain from a node.
+      *
+diff --git a/src/trie.cpp b/src/trie.cpp
+index 503829b..addece1 100644
+--- a/src/trie.cpp
++++ b/src/trie.cpp
+@@ -350,19 +350,28 @@ void Trie::insert(const std::string& word, float frequency, bool log_freq_direct
+             return;  // Invalid character, skip word
+         }
+ 
+-        // Get or create child
+-        if (nodes_[node_idx].children[char_idx] == 0) {
+-            // Create new node
+-            uint32_t new_idx = static_cast<uint32_t>(nodes_.size());
+-            nodes_.emplace_back();
+-            // Set parent chain info on the new node
+-            nodes_[new_idx].parent = node_idx;
+-            nodes_[new_idx].parent_char = static_cast<uint8_t>(char_idx);
+-            nodes_[new_idx].depth = static_cast<uint16_t>(i + 1);
+-            nodes_[node_idx].children[char_idx] = new_idx;
++        // Find the child, or the place for it in alphabet order
++        uint32_t previous = 0, next = nodes_[node_idx].first_child;
++        while (next != 0 && nodes_[next].parent_char < char_idx) {
++            previous = next;
++            next = nodes_[next].next_sibling;
++        }
++        if (next != 0 && nodes_[next].parent_char == char_idx) {
++            node_idx = next;
++            continue;
+         }
+ 
+-        node_idx = nodes_[node_idx].children[char_idx];
++        // Create new node
++        uint32_t new_idx = static_cast<uint32_t>(nodes_.size());
++        nodes_.emplace_back();
++        // Set parent chain info on the new node
++        nodes_[new_idx].parent = node_idx;
++        nodes_[new_idx].parent_char = static_cast<uint8_t>(char_idx);
++        nodes_[new_idx].depth = static_cast<uint16_t>(i + 1);
++        nodes_[new_idx].next_sibling = next;
++        if (previous != 0) nodes_[previous].next_sibling = new_idx;
++        else nodes_[node_idx].first_child = new_idx;
++        node_idx = new_idx;
+     }
+ 
+     // Mark as word
+@@ -384,7 +393,7 @@ bool Trie::contains(const std::string& word) const {
+             return false;
+         }
+ 
+-        uint32_t child_idx = nodes_[node_idx].children[char_idx];
++        uint32_t child_idx = child(node_idx, char_idx);
+         if (child_idx == 0) {
+             return false;
+         }
+@@ -394,6 +403,12 @@ bool Trie::contains(const std::string& word) const {
+     return nodes_[node_idx].is_word;
+ }
+ 
++uint32_t Trie::child(uint32_t node_idx, int char_idx) const {
++    uint32_t next = nodes_[node_idx].first_child;
++    while (next != 0 && nodes_[next].parent_char < char_idx) next = nodes_[next].next_sibling;
++    return next != 0 && nodes_[next].parent_char == char_idx ? next : 0;
++}
++
+ std::string Trie::reconstruct_word(uint32_t node_idx) const {
+     if (node_idx == 0 || node_idx >= nodes_.size()) {
+         return "";
+@@ -436,25 +451,18 @@ static int Trie_GetCodepoint(void* self, TrieId id) {
+ static uint32_t Trie_GetChildCount(void* self, TrieId id) {
+     const TrieNode *node = ((Trie *)self)->get_node(id);
+ 
+-    int count = 0;
+-    for(int i=0; i<MAX_CHARS; i++) {
+-        if(node->children[i] != 0) count++;
+-    }
++    uint32_t count = 0;
++    for (TrieId child = node->first_child; child != 0; child = ((Trie *)self)->get_node(child)->next_sibling) count++;
+ 
+     return count;
+ }
+ static TrieId Trie_GetChild(void* self, TrieId id, uint32_t idx) {
+     const TrieNode *node = ((Trie *)self)->get_node(id);
+ 
+-    int count = 0;
+-    for(int i=0; i<MAX_CHARS; i++) {
+-        if(node->children[i] != 0) {
+-            if(count == idx) return node->children[i];
+-            count++;
+-        }
+-    }
++    TrieId child = node->first_child;
++    for (uint32_t i = 0; i < idx && child != 0; i++) child = ((Trie *)self)->get_node(child)->next_sibling;
+ 
+-    return 0;
++    return child;
+ }
+ static bool Trie_IsWord(void* self, TrieId id) {
+     const TrieNode *node = ((Trie *)self)->get_node(id);

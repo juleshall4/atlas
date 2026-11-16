@@ -17,6 +17,10 @@ fi
 git -C "$SOURCE" checkout --detach "$REVISION"
 git -C "$SOURCE" submodule update --init --recursive
 test "$(git -C "$SOURCE/third_party/executorch" rev-parse HEAD)" = "$RUNTIME_REVISION"
+# Linked child lists instead of a slot per letter take the English dictionary from about 70 MB to 8 MB.
+if ! git -C "$SOURCE" apply --reverse --check "$ROOT/native/trie.patch" 2>/dev/null; then
+  git -C "$SOURCE" apply "$ROOT/native/trie.patch"
+fi
 
 if [ ! -x "$VENV/bin/python" ]; then
   uv venv --python 3.12 "$VENV"
