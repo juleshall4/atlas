@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * Copies the bundled models out of the APK, checking each against the manifest. A full check reads every file, so it
@@ -67,7 +68,11 @@ final class ModelAssets {
                 repaired++;
             } finally { Files.deleteIfExists(staging); }
         }
-        Files.createDirectories(directory);
+        // Files that earlier versions bundled would otherwise stay on the phone for good.
+        try (Stream<Path> files = Files.walk(directory)) {
+            for (Path file : (Iterable<Path>) files.filter(Files::isRegularFile)::iterator)
+                if (!paths.contains(directory.relativize(file).toString())) Files.delete(file);
+        }
         Path staging = Files.createTempFile(directory, "verified-", ".tmp");
         try {
             Files.write(staging, manifest.getBytes(StandardCharsets.UTF_8));
