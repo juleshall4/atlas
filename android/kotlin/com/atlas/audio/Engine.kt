@@ -62,6 +62,11 @@ object Engine {
     private var deviceCallback: AudioDeviceCallback? = null
     private var playbackCallback: AudioManager.AudioPlaybackCallback? = null
     private var volumeReceiver: BroadcastReceiver? = null
+    private val main = Handler(Looper.getMainLooper())
+    private val routeCheck = Runnable {
+        synchronized(this) { applyEnabled() }
+        if (calls(app)) Calls.sync(app, audio.communicationDevice?.type == AudioDeviceInfo.TYPE_BUILTIN_SPEAKER)
+    }
 
     @Synchronized
     fun init(context: Context) {
@@ -98,6 +103,7 @@ object Engine {
         playbackCallback = null
         volumeReceiver?.let(app::unregisterReceiver)
         volumeReceiver = null
+        main.removeCallbacks(routeCheck)
         Calls.releaseAll()
     }
 
@@ -158,31 +164,30 @@ object Engine {
 
     private fun watchDevices() {
         if (deviceCallback != null) return
-        val handler = Handler(Looper.getMainLooper())
         deviceCallback = object : AudioDeviceCallback() {
             override fun onAudioDevicesAdded(added: Array<out AudioDeviceInfo>) = reroute()
             override fun onAudioDevicesRemoved(removed: Array<out AudioDeviceInfo>) = reroute()
-        }.also { audio.registerAudioDeviceCallback(it, handler) }
+        }.also { audio.registerAudioDeviceCallback(it, main) }
         // Switching between connected outputs adds no device, but playing tracks report the new one.
         playbackCallback = object : AudioManager.AudioPlaybackCallback() {
             override fun onPlaybackConfigChanged(configs: MutableList<AudioPlaybackConfiguration>) = reroute()
-        }.also { audio.registerAudioPlaybackCallback(it, handler) }
+        }.also { audio.registerAudioPlaybackCallback(it, main) }
         volumeReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
+                // The compressor follows media volume only, so ring and alarm volume leave it alone.
+                if (intent.getIntExtra("android.media.EXTRA_VOLUME_STREAM_TYPE", -1) != AudioManager.STREAM_MUSIC) return
                 synchronized(Engine) { apply() }
             }
         }.also { app.registerReceiver(it, IntentFilter("android.media.VOLUME_CHANGED_ACTION"), Context.RECEIVER_NOT_EXPORTED) }
     }
 
-    /** Routing settles shortly after a device change, so check again a moment later. */
+    /**
+     * Routing settles shortly after a device change, so check again a moment later. Sounds often start in bursts,
+     * so a new change replaces the checks still waiting instead of adding more.
+     */
     private fun reroute() {
-        val handler = Handler(Looper.getMainLooper())
-        listOf(0L, 300L, 1000L).forEach { delay ->
-            handler.postDelayed({
-                synchronized(this) { applyEnabled() }
-                if (calls(app)) Calls.sync(app, audio.communicationDevice?.type == AudioDeviceInfo.TYPE_BUILTIN_SPEAKER)
-            }, delay)
-        }
+        main.removeCallbacks(routeCheck)
+        listOf(0L, 300L, 1000L).forEach { main.postDelayed(routeCheck, it) }
     }
 
     private fun save(key: String, on: Boolean) {

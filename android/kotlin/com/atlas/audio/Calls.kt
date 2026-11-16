@@ -2,6 +2,8 @@ package com.atlas.audio
 
 import android.content.Context
 import android.content.pm.PackageManager
+import android.media.AudioAttributes
+import android.media.AudioManager
 import android.media.audiofx.DynamicsProcessing
 import android.util.Log
 import java.util.concurrent.Executors
@@ -49,8 +51,11 @@ object Calls {
     /** Matches effects to the call sessions playing now; `onSpeaker` bypasses them for the earpiece or a headset. */
     fun sync(context: Context, onSpeaker: Boolean) {
         if (!allowed(context)) return
+        // Apps see what kind of sound plays, but not its session, so only a call that is playing needs the dump.
+        val call = context.getSystemService(AudioManager::class.java).activePlaybackConfigurations
+            .any { it.audioAttributes.usage == AudioAttributes.USAGE_VOICE_COMMUNICATION }
         worker.execute {
-            val sessions = runCatching { voiceSessions() }.getOrElse { emptyList() }
+            val sessions = if (!call) emptyList() else runCatching { voiceSessions() }.getOrElse { emptyList() }
             synchronized(this) {
                 // Calls can be switched off while the scan runs.
                 if (!Engine.calls(context)) return@execute
