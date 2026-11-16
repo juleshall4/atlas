@@ -140,14 +140,17 @@ public final class TypedPredictions {
         int limit = lower.length() >= 7 ? 2 : 1;
         Map<String, Integer> distances = new HashMap<>();
         Map<String, Double> found = new LinkedHashMap<>();
-        for (int i = 0; i < words.length; i++) {
-            String word = words[i];
-            if (word.length() < 2 || !sameStart(lower, word) || result.contains(word)) continue;
-            int distance = distance(lower, word, limit);
-            if (distance > limit || !allowed.test(word)) continue;
-            distances.put(word, distance);
-            found.put(word, (double) frequencies[i]);
-        }
+        // The words are sorted, so only the runs that start the same way need checking: "h" and the swapped "th" for "hte".
+        String swapped = "" + lower.charAt(1) + lower.charAt(0);
+        for (String start : lower.charAt(0) == lower.charAt(1) ? List.of(lower.substring(0, 1)) : List.of(lower.substring(0, 1), swapped))
+            for (int i = lowerBound(start); i < words.length && words[i].startsWith(start); i++) {
+                String word = words[i];
+                if (word.length() < 2 || !sameStart(lower, word) || result.contains(word)) continue;
+                int distance = distance(lower, word, limit);
+                if (distance > limit || !allowed.test(word)) continue;
+                distances.put(word, distance);
+                found.put(word, (double) frequencies[i]);
+            }
         Comparator<Map.Entry<String, Double>> likely = Comparator
                 .<Map.Entry<String, Double>>comparingInt(entry -> distances.get(entry.getKey()))
                 .thenComparing(Comparator.<Map.Entry<String, Double>>comparingDouble(

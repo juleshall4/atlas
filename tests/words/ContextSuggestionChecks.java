@@ -59,6 +59,8 @@ public final class ContextSuggestionChecks {
                 "Completions must stay available next to spelling fixes");
         check(first(spelling.suggest("becuase", List.of(), 20000, word -> true)).equals("because"),
                 "Swapped letters must be offered as a fix");
+        check(first(spelling.suggest("hte", List.of(), 20000, word -> true)).equals("the"),
+                "Swapped first letters must be offered as a fix");
         check(first(spelling.suggest("recieve", List.of(), 20000, word -> true, Map.of("receive", 1d))).equals("receive"),
                 "Fixes must also appear when context ranks the words");
         String[] unfinished = spelling.suggest("thi", List.of(), 20000, word -> true);
