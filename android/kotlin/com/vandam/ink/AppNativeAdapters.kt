@@ -19,6 +19,7 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
 import android.view.KeyEvent
+import android.view.WindowInsets
 import android.view.inputmethod.InputMethodManager
 import com.atlas.audio.Calls
 import com.atlas.audio.Engine
@@ -62,8 +63,20 @@ private class AtlasAdapter(private val activity: MainActivity) : NativeAdapter, 
 
     // Atlas handles uiMode changes itself, so the screens hear about a new phone theme from here.
     private val systemTheme = object : ComponentCallbacks {
-        override fun onConfigurationChanged(configuration: Configuration) = publishState()
+        override fun onConfigurationChanged(configuration: Configuration) {
+            publishState()
+            handler.postDelayed(reshowKeyboard, 300)
+        }
         override fun onLowMemory() = Unit
+    }
+
+    // Atlas handles a new theme without a restart. Android then shows the keyboard again but stops its
+    // animation part way, so the strip stays invisible until the keyboard closes. Hide and show it to finish.
+    private val reshowKeyboard = Runnable {
+        val window = activity.window
+        if (window.decorView.rootWindowInsets?.isVisible(WindowInsets.Type.ime()) != true) return@Runnable
+        window.insetsController?.hide(WindowInsets.Type.ime())
+        window.insetsController?.show(WindowInsets.Type.ime())
     }
 
     private val handler = Handler(Looper.getMainLooper())
