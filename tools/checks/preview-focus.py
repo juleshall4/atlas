@@ -26,11 +26,17 @@ def hierarchy():
 
 
 def editor():
-    return next(
-        node.attrib for node in hierarchy().iter("node")
-        if node.attrib.get("class") == "android.widget.EditText"
-        and node.attrib.get("hint") == HINT
-    )
+    # The screen can take a few seconds to come back, for example just after an install.
+    for _ in range(10):
+        found = next((
+            node.attrib for node in hierarchy().iter("node")
+            if node.attrib.get("class") == "android.widget.EditText"
+            and node.attrib.get("hint") == HINT
+        ), None)
+        if found:
+            return found
+        time.sleep(1)
+    raise SystemExit("FAIL: the preview field did not show")
 
 
 def launch(href=None):
@@ -53,12 +59,6 @@ def main():
     # Open the preview from Keyboard, so Back returns there.
     launch("/settings/keyboard")
     tap(850, 190)
-    for _ in range(10):
-        try:
-            editor()
-            break
-        except StopIteration:
-            time.sleep(1)
     initial = editor()
     assert initial["focused"] == "true", "Preview did not regain focus"
     original = initial["text"]
