@@ -7,5 +7,5 @@ android="$sdk/platforms/android-36/android.jar"
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 "$kotlin/bin/kotlinc" -language-version 2.2 -classpath "$android" -d "$work" \
-  android/kotlin/com/atlas/keyboard/HyperKey.kt tests/shortcuts/HyperKeyChecks.kt
+  android/kotlin/com/atlas/keyboard/HyperKey.kt android/kotlin/com/atlas/keyboard/Modifiers.kt tests/shortcuts/HyperKeyChecks.kt
 java -cp "$work:$android:$kotlin/lib/kotlin-stdlib.jar" com.atlas.keyboard.HyperKeyChecksKt

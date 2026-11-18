@@ -25,6 +25,7 @@ import android.view.accessibility.AccessibilityEvent
  */
 class BackService : AccessibilityService() {
     private val hyper = HyperKey()
+    private val dictationKeys = HashSet<Int>()
     private val overlay by lazy {
         TouchpadOverlay(this, WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY) { touchpad?.invoke(it) == true }
     }
@@ -55,10 +56,17 @@ class BackService : AccessibilityService() {
         if (KeyCapture.waiting?.invoke(event) == true) return true
         val code = AppShortcuts.activeKey(this)
         if (code == AppShortcuts.NONE || event.action != KeyEvent.ACTION_DOWN && event.action != KeyEvent.ACTION_UP) return false
+        if (event.action == KeyEvent.ACTION_UP && dictationKeys.remove(event.keyCode)) return false
+        if (event.action == KeyEvent.ACTION_DOWN && (AtlasIme.listening || event.keyCode in dictationKeys)) {
+            // The keyboard stops listening on key down and needs the matching release too.
+            dictationKeys += event.keyCode
+            return false
+        }
         val action = hyper.key(code, event.keyCode, event.action == KeyEvent.ACTION_DOWN, event.repeatCount, event.eventTime)
         if (action == HyperKey.Action.Pass) return false
         // The keyboard still learns of the press, so the finger on the touchpad does not type.
         AtlasIme.keyTaken(event)
+        if (action == HyperKey.Action.Twice) AtlasIme.dictate()
         if (action is HyperKey.Action.Open) try {
             AppShortcuts.open(this, action.letter)
         } catch (error: RuntimeException) {
@@ -74,6 +82,7 @@ class BackService : AccessibilityService() {
             else info.flags and AccessibilityServiceInfo.FLAG_REQUEST_FILTER_KEY_EVENTS.inv()
         if (flags == info.flags) return
         hyper.reset()
+        dictationKeys.clear()
         info.flags = flags
         serviceInfo = info
     }

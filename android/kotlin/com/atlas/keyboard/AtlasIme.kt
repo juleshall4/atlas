@@ -27,6 +27,7 @@ import android.view.inputmethod.CursorAnchorInfo
 import android.view.inputmethod.ExtractedTextRequest
 import android.view.inputmethod.InputConnection
 import android.view.inputmethod.InputMethodManager
+import android.widget.Toast
 import android.view.inputmethod.SurroundingText
 import com.atlas.engine.Calibration
 import com.atlas.engine.EmojiPages
@@ -34,6 +35,8 @@ import com.atlas.engine.EmojiSearch
 import com.atlas.engine.Swipe
 import com.atlas.engine.SwipeTyping
 import com.atlas.engine.TypingSettings
+import com.atlas.speech.Dictation
+import com.atlas.speech.SpeechModels
 import java.io.IOException
 import kotlin.math.abs
 
@@ -79,6 +82,10 @@ class AtlasIme : InputMethodService() {
     private val consumedKeys = HashSet<Int>()
     private var deadKeyPending = false
     private var tapKeys = ""
+    /** Spots Fn tapped twice when Atlas's accessibility service is not taking Fn for Quick open. */
+    private val hyper = HyperKey()
+    private var dictation: Dictation? = null
+    private val dictationStopKeys = HashSet<Int>()
     private class PendingInput(var ready: Boolean, var action: (() -> Unit)?, val event: KeyEvent? = null,
                                val settlement: Contact.Settlement? = null)
     private val pendingInput = ArrayDeque<PendingInput>()
@@ -224,6 +231,7 @@ class AtlasIme : InputMethodService() {
     }
 
     override fun onStartInput(info: EditorInfo, restarting: Boolean) {
+        cancelDictation()
         preserveDestinationInput()
         editor.cancelState()
         super.onStartInput(info, restarting)
@@ -311,6 +319,7 @@ class AtlasIme : InputMethodService() {
     }
 
     override fun onFinishInput() {
+        cancelDictation()
         preserveDestinationInput()
         // The old connection is still owned here; only a verified final explicit choice is learned.
         composer.stop(terminal = true)
@@ -459,6 +468,7 @@ class AtlasIme : InputMethodService() {
     /** A show request from [light] can arrive as the screen goes off. Hide again so the Titan turns off the light. */
     private val screenOff = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
+            cancelDictation()
             if (!editing) requestHideSelf(0)
         }
     }
@@ -726,6 +736,19 @@ class AtlasIme : InputMethodService() {
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         if (KeyCapture.waiting?.invoke(event) == true) return true
+        // Any key while Atlas listens stops listening, and does nothing else.
+        if (event.repeatCount > 0 && keyCode in dictationStopKeys) return true
+        if (dictation?.listening == true && event.repeatCount == 0) {
+            dictation?.stop()
+            dictationStopKeys += keyCode
+            return true
+        }
+        if (hyper.key(AppShortcuts.FN, keyCode, true, event.repeatCount, event.eventTime) == HyperKey.Action.Twice) {
+            if (dictate()) {
+                consumedKeys += keyCode
+                return true
+            }
+        }
         // Android hands back to a shown keyboard first, which would only close the strip.
         if (keyCode == KeyEvent.KEYCODE_BACK && editing && isInputViewShown) return true
         if (!editing || keyCode == KeyEvent.KEYCODE_BACK) return super.onKeyDown(keyCode, event)
@@ -763,6 +786,8 @@ class AtlasIme : InputMethodService() {
 
     override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean {
         if (KeyCapture.waiting?.invoke(event) == true) return true
+        if (dictationStopKeys.remove(keyCode)) return true
+        hyper.key(AppShortcuts.FN, keyCode, false, 0, event.eventTime)
         if (keyCode == KeyEvent.KEYCODE_BACK && editing && isInputViewShown) {
             passingBack = true
             requestHideSelf(0)
@@ -916,6 +941,55 @@ class AtlasIme : InputMethodService() {
         contact.paging = stripPaging
     }
 
+    /**
+     * Starts speech to text in the text field, or stops it when Atlas is already listening. It types what
+     * you said once you stop speaking.
+     */
+    private fun dictate(): Boolean {
+        dictation?.let { current ->
+            if (current.listening) current.stop()
+            return true
+        }
+        if (!editing || !field.words || !SpeechModels.enabled(this)) return false
+        endCursor()
+        contact.cancelActive()
+        haptics.click()
+        val started = Dictation(this, object : Dictation.Listener {
+            override fun heard(level: Float) {
+                strip?.heard(level)
+            }
+
+            override fun writing() {
+                strip?.writing()
+            }
+
+            override fun done(text: String?) {
+                endDictation()
+                if (text != null && editing) enqueue { composer.dictate(text) }
+            }
+
+            override fun failed(message: String) {
+                endDictation()
+                Toast.makeText(this@AtlasIme, message, Toast.LENGTH_SHORT).show()
+            }
+        })
+        dictation = started
+        if (!isInputViewShown) showStrip.run()
+        strip?.startListening()
+        started.start()
+        return true
+    }
+
+    private fun endDictation() {
+        dictation = null
+        strip?.endListening()
+    }
+
+    private fun cancelDictation() {
+        dictation?.cancel()
+        if (dictation != null) endDictation()
+    }
+
     /** Converts touchpad points to the recogniser's letter space. */
     private fun letterSpace(points: List<Sample>): Swipe {
         val start = points.first().time
@@ -928,6 +1002,7 @@ class AtlasIme : InputMethodService() {
 
     override fun onDestroy() {
         if (running === this) running = null
+        cancelDictation()
         editing = false
         main.removeCallbacksAndMessages(null)
         settlements.clear()
@@ -951,6 +1026,14 @@ class AtlasIme : InputMethodService() {
             val keyboard = running ?: return
             if (keyboard.editing) keyboard.contact.key(event.keyCode, event.action == KeyEvent.ACTION_DOWN, event.eventTime)
         }
+
+        /** Fn was tapped twice while Atlas's accessibility service takes Fn. Call on the main thread. */
+        fun dictate() {
+            running?.dictate()
+        }
+
+        /** Atlas is listening, so the accessibility service lets keys through to stop it. */
+        val listening get() = running?.dictation?.listening == true
 
         private const val MAX_PENDING_INPUT = 128
         /** A finger that leaves the touchpad for this long can come back and keep moving the cursor. */

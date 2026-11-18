@@ -507,6 +507,34 @@ class Composer(
         predictLater()
     }
 
+    /**
+     * Types what speech to text heard, with a space between it and the word before. Mid-sentence, its first
+     * word loses the capital the model gave it, but only when the word list has it in lowercase.
+     */
+    fun dictate(text: String) {
+        if (defer { dictate(text) }) return
+        leave()
+        invalidate(false)
+        fullStop = null
+        composition = Composition.None
+        manualWord.clear()
+        correcting = null
+        awaitingNextWord = null
+        val before = editor.before().orEmpty()
+        val after = editor.after().orEmpty()
+        val gap = before.isNotEmpty() && !before.last().isWhitespace()
+        val ended = before.trimEnd().let { it.isEmpty() || it.last() in ".!?\n" }
+        val first = text.takeWhile { it.isLetter() || it == '\'' || it == '’' }
+        val lowered = first.lowercase()
+        val cased = if (!ended && first.length > 1 && first != first.uppercase() && first != lowered && words.known(lowered))
+            lowered + text.substring(first.length) else text
+        val space = if (after.isEmpty() || !after[0].isWhitespace()) " " else ""
+        if (!edit(0, (if (gap) " " else "") + cased + space)) return
+        // Like a swiped word's space, the space after moves behind punctuation typed next.
+        automaticSpace = snapshot()
+        predictLater()
+    }
+
     fun space(repeated: Boolean, time: Long) {
         if (defer(transferable = true) { space(repeated, time) }) return
         leave()

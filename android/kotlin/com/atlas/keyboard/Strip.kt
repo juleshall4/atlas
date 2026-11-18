@@ -44,6 +44,8 @@ class Strip(
         setTextColor(MUTED)
         isClickable = false
     }
+    private val waveform = Waveform(context)
+    private var dictating = false
     private var page = 0
     private var navigationInset = 0
 
@@ -91,6 +93,7 @@ class Strip(
         addView(queryView, LayoutParams(0, dp(56), (EmojiPages.PER_PAGE - EmojiPages.RESULTS_PER_PAGE).toFloat()))
         addView(emptyView, LayoutParams(0, dp(56), EmojiPages.RESULTS_PER_PAGE.toFloat()))
         for (view in symbolViews) addView(view, LayoutParams(0, dp(56), 1f))
+        addView(waveform, LayoutParams(0, dp(56), 1f))
         // Screen readers go left to right, so point them at the best word first.
         val ranked = wordViews.withIndex().sortedBy { WORD_ORDER[it.index] }.map { it.value }
         for (view in ranked) view.id = generateViewId()
@@ -101,6 +104,25 @@ class Strip(
             render()
             insets
         }
+        render()
+    }
+
+    fun startListening() {
+        waveform.clear()
+        dictating = true
+        render()
+    }
+
+    fun heard(level: Float) = waveform.add(level)
+
+    fun writing() {
+        waveform.writing = true
+        render()
+    }
+
+    fun endListening() {
+        dictating = false
+        waveform.clear()
         render()
     }
 
@@ -138,17 +160,20 @@ class Strip(
     private fun render() {
         val dark = TypingSettings.dark(context)
         val ink = if (dark) Color.WHITE else Color.BLACK
-        val visible = showSuggestions || showPages
-        setBackgroundColor(if (!visible) Color.TRANSPARENT else if (dark) Color.BLACK else Color.WHITE)
+        val visible = showSuggestions || showPages || dictating
+        val background = if (dark) Color.BLACK else Color.WHITE
+        setBackgroundColor(if (visible) background else Color.TRANSPARENT)
         // The gesture handle draws over the strip, so it takes the strip's colours, not the phone's theme.
         windowInsetsController?.setSystemBarsAppearance(if (dark) 0 else WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS,
             WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS)
         setPadding(dp(8), 0, dp(8), if (visible) navigationInset else 0)
         // Keep a window for firmware touchpad routing when there is nothing to display.
         minimumHeight = if (visible) 0 else 1
+        waveform.visibility = if (dictating) VISIBLE else GONE
+        waveform.colour(ink)
         for ((slot, view) in wordViews.withIndex()) {
             val index = WORD_ORDER[slot]
-            view.visibility = if (showSuggestions && !showPages) VISIBLE else GONE
+            view.visibility = if (!dictating && showSuggestions && !showPages) VISIBLE else GONE
             view.text = words.getOrElse(index) { "" }
             view.isEnabled = index < words.size
             view.setTextColor(ink)
@@ -157,16 +182,16 @@ class Strip(
         val query = if (showEmoji) emoji?.query().orEmpty() else ""
         val searching = query.isNotEmpty()
         val found = emoji?.results() ?: 0
-        queryView.visibility = if (searching) VISIBLE else GONE
+        queryView.visibility = if (!dictating && searching) VISIBLE else GONE
         queryView.text = SpannableString("$query|").apply {
             setSpan(ForegroundColorSpan(MUTED), query.length, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
         queryView.setTextColor(ink)
-        emptyView.visibility = if (searching && found == 0) VISIBLE else GONE
+        emptyView.visibility = if (!dictating && searching && found == 0) VISIBLE else GONE
         for ((slot, view) in symbolViews.withIndex()) {
             val value = if (showEmoji) emojiPage.getOrNull(slot) else symbols.getOrNull(page * SYMBOLS_PER_PAGE + slot)
             view.visibility = when {
-                !showPages || searching && (found == 0 || slot >= EmojiPages.RESULTS_PER_PAGE) -> GONE
+                dictating || !showPages || searching && (found == 0 || slot >= EmojiPages.RESULTS_PER_PAGE) -> GONE
                 value == null -> INVISIBLE
                 else -> VISIBLE
             }
@@ -175,6 +200,7 @@ class Strip(
             view.setTextColor(ink)
         }
         contentDescription = when {
+            dictating -> if (waveform.writing) "Writing" else "Listening"
             searching -> "Emoji search, $query. ${if (found == 1) "1 emoji" else "$found emoji"}. Push Enter to insert the first."
             showEmoji -> "Emoji, ${emoji?.group().orEmpty()}. Swipe the keyboard sideways for more, or up or down for the next group."
             showSymbols -> "Symbols. Swipe the keyboard sideways for more."

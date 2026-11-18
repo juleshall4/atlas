@@ -47,9 +47,28 @@ fun main() {
     Keys().run {
         down(HYPER, 0)
         up(HYPER, 50)
-        check("tap again: cancel is taken", down(HYPER, 300), Action.Take)
-        check("tap again: release is taken", up(HYPER, 350), Action.Take)
-        check("tap again: letter types", down(S, 400), Action.Pass)
+        check("tap twice: second press within 300 ms", down(HYPER, 299), Action.Twice)
+        check("tap twice: release is taken", up(HYPER, 350), Action.Take)
+        check("tap twice: letter types", down(S, 400), Action.Pass)
+    }
+    Keys().run {
+        down(HYPER, 0)
+        up(HYPER, 250)
+        check("tap twice: 300 ms between presses is too slow", down(HYPER, 300), Action.Take)
+    }
+    Keys().run {
+        down(HYPER, 0)
+        up(HYPER, 50)
+        check("tap twice: too slow is a new tap", down(HYPER, 51 + HyperKey.TAP_MILLIS), Action.Take)
+        up(HYPER, 1100)
+        check("tap twice: after a slow pair", down(HYPER, 1200), Action.Twice)
+    }
+    Keys().run {
+        down(HYPER, 0)
+        up(HYPER, 50)
+        check("tap three times: second starts dictation", down(HYPER, 250), Action.Twice)
+        up(HYPER, 290)
+        check("tap three times: third is a new tap", down(HYPER, 400), Action.Take)
     }
     Keys().run {
         down(HYPER, 0)

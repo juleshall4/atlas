@@ -4,7 +4,7 @@ import android.view.KeyEvent
 
 /**
  * Hyper plus a letter opens that letter's app. Hold Hyper and push the letter, or tap Hyper and push the
- * letter within [TAP_MILLIS].
+ * letter within [TAP_MILLIS]. Two Hyper presses within [Modifiers.DOUBLE_PRESS_MILLIS] start speech to text.
  * Hyper itself never reaches apps, and a letter that Hyper takes never types, even with no app set.
  */
 class HyperKey {
@@ -15,14 +15,17 @@ class HyperKey {
         data object Take : Action
         /** Kept from apps: open the app for this letter, if it has one. */
         data class Open(val letter: Char) : Action
+        /** Kept from apps: Hyper was tapped twice. */
+        data object Twice : Action
     }
 
     private var held = false
     /** The letter was pushed while Hyper was held, so letting go of Hyper does not make it ready again. */
     private var usedWhileHeld = false
-    /** This press of Hyper cancelled a tap, so letting go does nothing. */
+    /** This press of Hyper was the second tap, so letting go does nothing. */
     private var cancelling = false
     private var tappedUntil = Long.MIN_VALUE
+    private var pressedAt = 0L
     private val taken = HashSet<Int>()
 
     fun key(hyper: Int, code: Int, down: Boolean, repeat: Int, time: Long): Action {
@@ -46,9 +49,12 @@ class HyperKey {
             if (repeat > 0 || held) return Action.Take
             held = true
             usedWhileHeld = false
+            val sincePress = time - pressedAt
+            pressedAt = time
             if (time <= tappedUntil) {
                 tappedUntil = Long.MIN_VALUE
                 cancelling = true
+                if (sincePress in 0L until Modifiers.DOUBLE_PRESS_MILLIS) return Action.Twice
             }
             return Action.Take
         }
