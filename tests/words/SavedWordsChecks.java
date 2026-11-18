@@ -13,8 +13,14 @@ public final class SavedWordsChecks {
         words.add("Atlas", day);
         check(words.active(day).size() == 1, "An added word must be active immediately");
         check(words.restoreCase("atlas", day).equals("Atlas"), "Keep the entered spelling");
+        words.add("Atlas", day);
+        check(Arrays.equals(words.spellings(day), new String[] { "Atlas" }), "Adding the same spelling twice must leave one word");
         words.add("ATLAS", day);
-        check(words.entries().size() == 1, "Adding another spelling must not duplicate a word");
+        check(Arrays.equals(words.spellings(day), new String[] { "ATLAS" }), "Adding a case variant must update the existing word");
+        LanguageHabits imported = new LanguageHabits();
+        imported.add("atlas", day);
+        words.merge(imported);
+        check(Arrays.equals(words.spellings(day), new String[] { "ATLAS" }), "Importing a case variant must keep the local spelling");
         words.regret("atlas");
         words.regret("atlas");
         check(words.active(day).isEmpty(), "The word must be held before testing reactivation");

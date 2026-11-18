@@ -21,12 +21,6 @@ public final class SentenceCaseChecks {
         uncapitalised("Ebay", "Hi. ", "ebay");
         uncapitalised("H", "Hi ", "H");
         uncapitalised("G", "e.", "G");
-        sentenceCapital("Nah", "", true);
-        sentenceCapital("Nah", "Ok. ", true);
-        sentenceCapital("Nah", "I said ", false);
-        sentenceCapital("NASA", "", false);
-        sentenceCapital("McDonald", "", false);
-        sentenceCapital("nah", "", false);
         System.out.println("Sentence case checks passed");
     }
 
@@ -34,12 +28,6 @@ public final class SentenceCaseChecks {
         String actual = SentenceCase.uncapitalise(text, before);
         if (!actual.equals(expected)) {
             throw new AssertionError("Shift: \"" + before + "\" + \"" + text + "\" gave \"" + actual + "\", expected \"" + expected + "\"");
-        }
-    }
-
-    private static void sentenceCapital(String word, String before, boolean expected) {
-        if (SentenceCase.sentenceCapital(word, before) != expected) {
-            throw new AssertionError("Sentence capital: \"" + before + "\" + \"" + word + "\" should be " + expected);
         }
     }
 

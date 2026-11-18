@@ -82,6 +82,7 @@ class Composer(
             val swipe: Swipe,
             val context: String,
             val recognition: Words.Recognition,
+            val metaState: Int,
             val endedAt: Long,
             val continuable: Boolean,
             val snapshot: Snapshot,
@@ -416,20 +417,20 @@ class Composer(
                 if (!edit(replaced, pronoun + inserted)) return@recognise
                 val accepted = snapshot()
                 automaticSpace = accepted.takeIf { trailingSpace }
-                val swiped = Composition.Swiped(word, leadingSpace, trailingSpace, path, context, recognition, pending.endedAt,
-                    true, accepted, false, choices)
+                val swiped = Composition.Swiped(word, leadingSpace, trailingSpace, path, context, recognition, pending.metaState,
+                    pending.endedAt, true, accepted, false, choices)
                 composition = swiped
                 remember(swiped)
                 confirmState(accepted) { confirmed ->
                     if (confirmed) {
-                        learnWord(completed?.let { pronoun.ifEmpty { it } }, correction)
+                        learnManualWord(completed, correction)
                         show(choices)
                         checkLookAlike()
                     }
                 }
                 return@recognise
             }
-            learnWord(completed, correction)
+            learnManualWord(completed, correction)
             recogniseNext()
         }
     }
@@ -479,9 +480,9 @@ class Composer(
         automaticSpace = if (letterTap) snapshot() else null
         composition = Composition.None
         if (letterTap) manualWord.clear()
-        else if (!completesCorrection) observe(text)
-        if (!completed.isNullOrEmpty()) {
-            confirmState(snapshot()) { confirmed -> if (confirmed) learnWord(respelled?.second ?: completed, correction) }
+        else if (!completesCorrection) observe(if (shifted) cased else text)
+        if (completed != null) {
+            confirmState(snapshot()) { confirmed -> if (confirmed) learnManualWord(completed, correction, respelled?.second) }
             return
         }
         predictLater()
@@ -570,8 +571,8 @@ class Composer(
             }
         }
         automaticSpace = null
-        if (field.learning && !completed.isNullOrEmpty()) {
-            confirmState(snapshot()) { confirmed -> if (confirmed) learnWord(respelled?.second ?: completed, correction) }
+        if (completed != null) {
+            confirmState(snapshot()) { confirmed -> if (confirmed) learnManualWord(completed, correction, respelled?.second) }
             return
         }
         predictLater()
@@ -631,7 +632,13 @@ class Composer(
         if (if (before.length < Editor.CONTEXT_LENGTH) actual != expected else !actual.endsWith(expected)) return
         val prefix = actual.takeLast(remaining)
         if (prefix.length != TypedPredictions.prefix(prefix).length) return
-        manualWord.edit(prefix, null, false)
+        // Keep the swipe's spelling and any explicit Shift, before sentence casing changed it.
+        val original = source.recognition.words.getOrNull(source.alternatives.indexOf(source.word))
+        val intended = original?.let { SwipeTyping.capitalise(it, "", source.metaState, false, false) }
+        val observed = if (intended == null || intended == source.word) prefix else {
+            intended.substring(0, intended.offsetByCodePoints(0, 1)) + prefix.substring(prefix.offsetByCodePoints(0, 1))
+        }
+        manualWord.edit(observed, null, false)
         correcting = source
     }
 
@@ -659,17 +666,17 @@ class Composer(
         when (result) {
             Editor.Enter.Newline -> {
                 if (!edit(0, "\n")) return
-                if (!completed.isNullOrEmpty()) {
-                    confirmState(snapshot()) { confirmed -> if (confirmed) learnWord(completed, correction) }
+                if (completed != null) {
+                    confirmState(snapshot()) { confirmed -> if (confirmed) learnManualWord(completed, correction) }
                     return
                 }
             }
             Editor.Enter.Next, Editor.Enter.Previous -> {
-                learnWord(completed, correction)
+                learnManualWord(completed, correction)
                 waitForDestination(owner, navigation = true)
             }
             Editor.Enter.Action -> {
-                learnWord(completed, correction)
+                learnManualWord(completed, correction)
                 waitForDestination(owner, navigation = false)
             }
             Editor.Enter.Rejected -> reset()
@@ -1065,7 +1072,7 @@ class Composer(
     /** Swipes and tap keys join the text with no space after some characters, so the word before them is not finished. */
     private fun startsNewWord(before: String) = SwipeTyping.prefix(before).isNotEmpty()
 
-    private fun completeManualWord(anchor: Snapshot): String? {
+    private fun completeManualWord(anchor: Snapshot): TypedWords.Completed? {
         val continuesWord = anchor.after?.firstOrNull()?.let { it.isLetter() || it == '\'' || it == '’' } == true
         if (!field.learning || !anchor.knownSelection || anchor.selected
             || correcting != null && (anchor != editSnapshot || continuesWord)) {
@@ -1085,17 +1092,25 @@ class Composer(
     }
 
     private fun typeWord(word: String, rememberCase: Boolean) {
+        words.typed(word, rememberCase)
         learned = null
         val anchor = snapshot()
-        val before = anchor.before
-        val index = before?.lastIndexOf(word) ?: -1
-        val sentenceCapital = index >= 0 && SwipeTyping.sentenceCapital(word, before!!.substring(0, index))
-        words.typed(word, rememberCase && !sentenceCapital)
-        if (before == null || !anchor.knownSelection || anchor.selected) return
+        val before = anchor.before ?: return
+        if (!anchor.knownSelection || anchor.selected) return
+        val index = before.lastIndexOf(word, ignoreCase = true)
         if (index < 0) return
         val tail = before.substring(index + word.length)
         if (tail.length > 2 || tail.any { it.isLetterOrDigit() || it == '\'' || it == '’' }) return
         learned = Learned(word, anchor.selection.end - tail.length, anchor)
+    }
+
+    private fun learnManualWord(completed: TypedWords.Completed?, correction: Composition.Swiped?, respelled: String? = null) {
+        if (completed == null) return
+        val spelling = completed.spelling()
+        val automaticInitial = completed.automaticInitial()
+        val word = if (respelled != null && automaticInitial) words.respell(spelling) else respelled ?: spelling
+        val rememberCase = !automaticInitial || spelling != spelling.lowercase()
+        learnWord(word, correction, rememberCase)
     }
 
     private fun learnWord(word: String?, correction: Composition.Swiped?, rememberCase: Boolean = true) {

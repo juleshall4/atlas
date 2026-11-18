@@ -690,8 +690,6 @@ public final class SwipeTyping {
 
     public static String uncapitalise(String text, String before) { return SentenceCase.uncapitalise(text, before); }
 
-    public static boolean sentenceCapital(String word, String before) { return SentenceCase.sentenceCapital(word, before); }
-
     public static String capitalise(String str, String str2, int i, boolean z, boolean autoCapitalise) {
         if ((1048576 & i) != 0) {
             return str.toUpperCase(Locale.UK);

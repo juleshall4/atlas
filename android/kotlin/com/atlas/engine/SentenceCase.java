@@ -26,14 +26,6 @@ public final class SentenceCase {
                 .append(text, Character.charCount(first), text.length()).toString();
     }
 
-    /** A capital at the start of a sentence says nothing about the word, so "Nah" there is still "nah". */
-    public static boolean sentenceCapital(String word, String before) {
-        if (word.isEmpty() || !startsSentence(before)) return false;
-        int first = word.codePointAt(0);
-        String rest = word.substring(Character.charCount(first));
-        return Character.isUpperCase(first) && rest.equals(rest.toLowerCase(Locale.ROOT));
-    }
-
     /** A full stop must have a space after it, so "e.g" and "atlas.com" stay in lowercase. */
     static boolean startsSentence(CharSequence before) {
         boolean spaced = false;
