@@ -1,10 +1,11 @@
 import { Field, Screen, Section, Toggle, navigate, useAction, useSnapshot } from "ink";
 import keyboard from "../../assets/icons/keyboard.svg";
-import { state, update, type State } from "../../lib/atlas";
+import { allowMicrophone, state, update, type State } from "../../lib/atlas";
 import { languageLabel } from "./language";
 import { liftLabel } from "./lift";
 import { setupDone, setupLeft } from "./setup";
 import { skinToneLabel } from "./skin-tone";
+import { speechModelLabel } from "./speech";
 import { tapKeysLabel } from "./tap-keys";
 import { vibrationLabel } from "./vibration";
 
@@ -37,6 +38,14 @@ export default function Keyboard() {
         <Field label="Tap keys" href="/settings/tap-keys">{tapKeysLabel(settings)}</Field>
         <Field label="Continue after a lift" href="/settings/lift">{liftLabel(settings)}</Field>
         <Field label="Vibration" href="/settings/vibration">{vibrationLabel(settings)}</Field>
+      </>}
+    </Section>
+    <Section title="Speech to text">
+      <Toggle label="Speech to text" value={settings.speechToText}
+        onChange={speechToText => save.run({ speechToText })} />
+      {settings.speechToText && <>
+        {!settings.microphone && <Field label="Allow microphone" onPress={() => void allowMicrophone()} />}
+        <Field label="Model" href="/settings/speech">{speechModelLabel(settings)}</Field>
       </>}
     </Section>
     <Section title="Touchpad">

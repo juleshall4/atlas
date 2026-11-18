@@ -67,6 +67,16 @@ export type State = {
   calls: boolean;
   /** The adb command that lets Atlas tune calls, or null when it has been run. */
   callsCommand: string | null;
+  /** Fn pressed twice in a text field starts speech to text. */
+  speechToText: boolean;
+  /** The id of the speech model in use, or null when none has been added. */
+  speechModel: string | null;
+  /** Every speech model Atlas can use. `installed` models have been downloaded and added. */
+  speechModels: { id: string; name: string; installed: boolean }[];
+  speechModelImport: { percent: number; secondsLeft: number | null } | null;
+  speechModelImportFailed: boolean;
+  /** Atlas may use the microphone, which speech to text needs. */
+  microphone: boolean;
 };
 
 export type Shortcut = { letter: string; app: string; name: string };
@@ -74,7 +84,7 @@ export type Shortcut = { letter: string; app: string; name: string };
 /** An app with a launcher icon. `icon` is a picture of it, or null when it cannot be drawn. */
 export type App = { app: string; name: string; icon: string | null };
 
-export type Settings = Pick<State, "learning" | "tapKeys" | "autoCapitalise" | "autoPunctuation" | "suggestionBar" | "cursorControl" | "touchLight" | "swipeTyping" | "liftOff" | "liftOffMillis" | "haptics" | "hapticPreset" | "language" | "spelling" | "skinTone" | "appearance" | "openApps" | "shortcutAnimation" | "actions" | "music" | "speakerProfile" | "calls">;
+export type Settings = Pick<State, "learning" | "tapKeys" | "autoCapitalise" | "autoPunctuation" | "suggestionBar" | "cursorControl" | "touchLight" | "swipeTyping" | "liftOff" | "liftOffMillis" | "haptics" | "hapticPreset" | "language" | "spelling" | "skinTone" | "appearance" | "openApps" | "shortcutAnimation" | "actions" | "music" | "speakerProfile" | "calls" | "speechToText" | "speechModel">;
 
 /** Touchpad points from 0 to 1 across the keyboard and down its four rows. */
 export type Point = [x: number, y: number];
@@ -156,6 +166,21 @@ export async function addLanguage() {
     await state.refresh();
   }
 }
+
+/** Where the speech models can be downloaded. */
+export const speechPage = "https://atlas.julian-hall.com/downloads/speech/";
+
+/** Opens the file picker for a downloaded speech model. Atlas adds the selected file in the background. */
+export async function addSpeechModel() {
+  try {
+    return await callNative("atlas", "addSpeechModel", {}, { timeoutMs: 1_800_000 }) === "true";
+  } finally {
+    await state.refresh();
+  }
+}
+
+/** Asks Android for the microphone, or opens Atlas's app settings once Android stops asking. */
+export const allowMicrophone = () => atlas("microphone");
 
 /** Hides the release notes until the next update. */
 export async function markNotesSeen() {

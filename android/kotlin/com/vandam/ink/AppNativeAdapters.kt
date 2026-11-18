@@ -1,5 +1,6 @@
 package com.vandam.ink
 
+import android.Manifest
 import android.app.Activity
 import android.app.Application
 import android.content.ClipData
@@ -8,6 +9,7 @@ import android.content.ComponentCallbacks
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.database.ContentObserver
 import android.graphics.Bitmap
@@ -37,6 +39,8 @@ import com.atlas.keyboard.Haptics
 import com.atlas.keyboard.KeyCapture
 import com.atlas.keyboard.Trace
 import com.atlas.keyboard.TouchpadPreview
+import com.atlas.speech.SpeechModelImport
+import com.atlas.speech.SpeechModels
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -54,6 +58,7 @@ private class AtlasAdapter(private val activity: MainActivity) : NativeAdapter, 
     // Adapters can be created before the live activity's window gains focus.
     private var visible = true
     private var transferring = false
+    private val stopSpeechUpdates = SpeechModelImport.listen { if (visible) publishState() }
     private val keyCapture = lazy { KeyCapture(activity, ::keyPressed) }
     private var keyCaptureRequested = false
     private val keyboardSettings = object : ContentObserver(Handler(Looper.getMainLooper())) {
@@ -140,6 +145,7 @@ private class AtlasAdapter(private val activity: MainActivity) : NativeAdapter, 
         watchingRequested = false
         previewRequested = false
         keyCaptureRequested = false
+        stopSpeechUpdates()
         activity.contentResolver.unregisterContentObserver(keyboardSettings)
         activity.application.unregisterActivityLifecycleCallbacks(this)
         activity.application.unregisterComponentCallbacks(systemTheme)
@@ -175,9 +181,9 @@ private class AtlasAdapter(private val activity: MainActivity) : NativeAdapter, 
                     typing.clearDictionary { error -> operationResult(error, complete) }
                     null
                 }
-                "transferLearning", "addLanguage" -> {
+                "transferLearning", "addLanguage", "addSpeechModel" -> {
                     check(!transferring) { "A learning transfer is already open." }
-                    val mode = if (operation == "addLanguage") "import" else data.getString("mode")
+                    val mode = if (operation != "transferLearning") "import" else data.getString("mode")
                     require(mode == "import" || mode == "export")
                     transferring = true
                     try {
@@ -185,12 +191,16 @@ private class AtlasAdapter(private val activity: MainActivity) : NativeAdapter, 
                             transferring = false
                             if (error == null) complete(NativeResult.Success(transferred.toString()))
                             else operationResult(error, complete)
-                        }, language = operation == "addLanguage")
+                        }, language = operation == "addLanguage", speech = operation == "addSpeechModel")
                     } catch (error: Exception) {
                         transferring = false
                         throw error
                     }
                     null
+                }
+                "microphone" -> {
+                    microphone()
+                    "null"
                 }
                 "copy" -> {
                     val text = data.getString("text")
@@ -356,6 +366,16 @@ private class AtlasAdapter(private val activity: MainActivity) : NativeAdapter, 
             .put("calls", Engine.calls(activity))
             .put("speakerProfile", Engine.profile(activity))
             .put("callsCommand", if (Calls.allowed(activity)) JSONObject.NULL else Calls.command(activity))
+            .put("speechToText", SpeechModels.enabled(activity))
+            .put("speechModel", SpeechModels.chosen(activity)?.id ?: JSONObject.NULL)
+            .put("speechModels", JSONArray(SpeechModels.ALL.map {
+                JSONObject().put("id", it.id).put("name", it.name).put("installed", SpeechModels.installed(activity, it))
+            }))
+            .put("speechModelImport", SpeechModelImport.progress?.let {
+                JSONObject().put("percent", it.percent).put("secondsLeft", it.secondsLeft ?: JSONObject.NULL)
+            } ?: JSONObject.NULL)
+            .put("speechModelImportFailed", SpeechModelImport.failed)
+            .put("microphone", microphoneAllowed())
     }
 
     /** The Titan's Scroll assistant switch powers the keyboard touchpad, and it ships off. Phones without one pass. */
@@ -404,6 +424,23 @@ private class AtlasAdapter(private val activity: MainActivity) : NativeAdapter, 
 
     private fun appPreferences() = activity.getSharedPreferences("app", Context.MODE_PRIVATE)
 
+    private fun microphoneAllowed() = activity.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+
+    /**
+     * Asks for the microphone. Once someone says no twice, Android stops asking, so Atlas opens its app
+     * settings instead. The screens refresh when Atlas comes back.
+     */
+    private fun microphone() {
+        if (microphoneAllowed()) return
+        val asked = appPreferences().getBoolean(ASKED_MICROPHONE, false)
+        if (asked && !activity.shouldShowRequestPermissionRationale(Manifest.permission.RECORD_AUDIO)) {
+            activity.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${activity.packageName}")))
+            return
+        }
+        appPreferences().edit().putBoolean(ASKED_MICROPHONE, true).apply()
+        activity.requestPermissions(arrayOf(Manifest.permission.RECORD_AUDIO), MICROPHONE_REQUEST)
+    }
+
     private fun set(key: String, value: Any) {
         when (key) {
             "learning" -> typing.learningEnabled(value as Boolean)
@@ -441,11 +478,18 @@ private class AtlasAdapter(private val activity: MainActivity) : NativeAdapter, 
                 Engine.setCalls(value as Boolean)
                 SpeakerService.sync(activity)
             }
+            "speechToText" -> {
+                SpeechModels.enabled(activity, value as Boolean)
+                if (value) microphone()
+            }
+            "speechModel" -> SpeechModels.choose(activity, value as String)
             else -> throw IllegalArgumentException("Unknown setting: $key")
         }
     }
 }
 
 private const val SEEN_NOTES = "seen_release_notes"
+private const val ASKED_MICROPHONE = "asked_microphone"
+private const val MICROPHONE_REQUEST = 7
 /** Icons show at 50 points; this keeps them sharp at the Titan's density. */
 private const val ICON_PIXELS = 144

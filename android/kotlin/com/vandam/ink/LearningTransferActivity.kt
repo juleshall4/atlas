@@ -10,19 +10,22 @@ import android.os.ResultReceiver
 import android.view.Gravity
 import android.widget.TextView
 import com.atlas.engine.SwipeTyping
+import com.atlas.speech.SpeechModelImport
 
 /**
  * Owns the Android file picker's result and keeps its document grant alive during the transfer. It exports or
- * imports learned words, or adds a downloaded language.
+ * imports learned words, or adds a downloaded language or speech model.
  */
 class LearningTransferActivity : Activity() {
     private val exporting get() = intent.getBooleanExtra(EXPORTING, false)
     private val language get() = intent.getBooleanExtra(LANGUAGE, false)
+    private val speech get() = intent.getBooleanExtra(SPEECH, false)
 
     @Suppress("DEPRECATION")
     override fun onCreate(savedInstanceState: Bundle?) {
+        if (speech) setTheme(android.R.style.Theme_Translucent_NoTitleBar)
         super.onCreate(savedInstanceState)
-        setContentView(TextView(this).apply {
+        if (!speech) setContentView(TextView(this).apply {
             gravity = Gravity.CENTER
             text = if (language) "Adding language…" else if (exporting) "Exporting words…" else "Importing words…"
         })
@@ -51,6 +54,10 @@ class LearningTransferActivity : Activity() {
             complete(false, "Could not open the selected file.")
             return
         }
+        if (speech) {
+            if (!SpeechModelImport.start(applicationContext, uri) { complete(true) }) complete(false)
+            return
+        }
         val typing = SwipeTyping.get(this)
         if (language) typing.addLanguage(uri) { complete(it == null, it) }
         else if (exporting) typing.exportConfig(uri) { complete(it == null, it) }
@@ -70,17 +77,19 @@ class LearningTransferActivity : Activity() {
         private const val RECEIVER = "receiver"
         private const val EXPORTING = "exporting"
         private const val LANGUAGE = "language"
+        private const val SPEECH = "speech"
         private const val ERROR = "error"
 
-        /** [language] picks a downloaded language file instead of a backup. */
-        internal fun start(activity: Activity, exporting: Boolean, complete: (Boolean, String?) -> Unit, language: Boolean = false) {
+        /** [language] picks a downloaded language file instead of a backup, and [speech] a speech model. */
+        internal fun start(activity: Activity, exporting: Boolean, complete: (Boolean, String?) -> Unit, language: Boolean = false,
+                           speech: Boolean = false) {
             val receiver = object : ResultReceiver(Handler(Looper.getMainLooper())) {
                 override fun onReceiveResult(resultCode: Int, resultData: Bundle?) {
                     complete(resultCode == RESULT_OK, resultData?.getString(ERROR))
                 }
             }
             activity.startActivity(Intent(activity, LearningTransferActivity::class.java)
-                .putExtra(EXPORTING, exporting).putExtra(LANGUAGE, language).putExtra(RECEIVER, receiver))
+                .putExtra(EXPORTING, exporting).putExtra(LANGUAGE, language).putExtra(SPEECH, speech).putExtra(RECEIVER, receiver))
         }
     }
 }
