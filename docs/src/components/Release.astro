@@ -1,0 +1,219 @@
+---
+/**
+ * One version on What's new. The latest shows open as a card. Older versions are rows in an
+ * EarlierVersions list that open when you click them.
+ * Example: <Release version="2.0.0" date="14 November 2026" summary="..." latest>...</Release>
+ */
+interface Props {
+	version: string;
+	date: string;
+	summary: string;
+	latest?: boolean;
+}
+
+const { version, date, summary, latest = false } = Astro.props;
+// Matches the old heading anchors, such as #version-200, which the app and home page link to.
+const id = `version-${version.replaceAll('.', '')}`;
+const github = `https://github.com/juleshall4/atlas/releases/tag/v${version}`;
+---
+
+{
+	latest ? (
+		<section id={id} class="release latest not-content">
+			<div class="head">
+				<div class="title">
+					<h2>
+						<a href={github}>Version {version}</a>
+					</h2>
+					<span class="tag">Latest</span>
+					<span class="date">{date}</span>
+				</div>
+				<p class="summary">{summary}</p>
+			</div>
+			<slot />
+		</section>
+	) : (
+		<details id={id} class="release older not-content">
+			<summary>
+				<h2>Version {version}</h2>
+				<span class="summary">{summary}</span>
+				<span class="date">{date}</span>
+				<svg class="chevron" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+					<path
+						d="M6 4l4 4-4 4"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="1.5"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					/>
+				</svg>
+			</summary>
+			<slot />
+			<p class="github">
+				<a href={github}>Version {version} on GitHub</a>
+			</p>
+		</details>
+	)
+}
+
+<script>
+	// Links such as /atlas/whats-new/#version-131 open that version.
+	const openTarget = () => {
+		const target = location.hash && document.getElementById(location.hash.slice(1));
+		if (target instanceof HTMLDetailsElement) {
+			target.open = true;
+			target.scrollIntoView();
+		}
+	};
+	openTarget();
+	window.addEventListener('hashchange', openTarget);
+</script>
+
+<style>
+	.release {
+		border: 1px solid var(--sl-color-gray-5);
+		font-size: 1rem;
+		line-height: 1.5rem;
+	}
+	.latest {
+		margin-top: 1.5rem;
+	}
+	h2 {
+		margin: 0;
+		color: #ffffff;
+		font-weight: 600;
+	}
+	.date {
+		color: var(--sl-color-gray-2);
+		font-size: 0.9375rem;
+		white-space: nowrap;
+	}
+
+	/* The latest version */
+	.head {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		padding: 1.75rem 2rem 1.5rem;
+	}
+	.title {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
+	.latest h2 {
+		font-size: 1.75rem;
+		letter-spacing: -0.02em;
+		line-height: 2.125rem;
+	}
+	.tag {
+		padding: 0.1875rem 0.625rem;
+		background: #ffffff;
+		color: #000000;
+		font-size: 0.8125rem;
+		font-weight: 600;
+		line-height: 1.125rem;
+	}
+	.title .date {
+		margin-left: auto;
+	}
+	.head .summary {
+		margin: 0;
+		color: var(--sl-color-text);
+		font-size: 1.0625rem;
+		line-height: 1.6;
+	}
+
+	/* Earlier versions */
+	.older {
+		border: none;
+	}
+	.older ~ .older {
+		border-top: 1px solid var(--sl-color-gray-6);
+	}
+	summary {
+		display: flex;
+		align-items: center;
+		gap: 1.25rem;
+		padding: 1.25rem 2rem;
+		cursor: pointer;
+		list-style: none;
+	}
+	summary::-webkit-details-marker {
+		display: none;
+	}
+	.older h2 {
+		width: 8.5rem;
+		flex-shrink: 0;
+		font-size: 1.125rem;
+		line-height: 1.5rem;
+	}
+	summary .summary {
+		flex: 1;
+		color: var(--sl-color-text);
+		line-height: 1.5rem;
+	}
+	.chevron {
+		flex-shrink: 0;
+		color: var(--sl-color-gray-2);
+		transition: transform 0.2s ease;
+	}
+	.older[open] .chevron {
+		transform: rotate(90deg);
+	}
+	summary:hover .chevron {
+		color: #ffffff;
+	}
+	.older[open] summary {
+		border-bottom: 1px solid var(--sl-color-gray-6);
+	}
+	.github {
+		margin: 0;
+		padding: 0 2rem 1.5rem 9rem;
+		font-size: 0.9375rem;
+	}
+	.github a {
+		color: var(--sl-color-gray-2);
+		text-decoration-color: var(--sl-color-gray-4);
+	}
+	.github a:hover {
+		color: #ffffff;
+	}
+
+	@media (max-width: 49.99rem) {
+		.head {
+			padding: 1.25rem 1.25rem 1.25rem;
+		}
+		.title {
+			flex-wrap: wrap;
+			gap: 0.5rem 0.75rem;
+		}
+		.title .date {
+			width: 100%;
+			margin-left: 0;
+		}
+		.latest h2 {
+			font-size: 1.5rem;
+		}
+		summary {
+			flex-wrap: wrap;
+			gap: 0.25rem 1rem;
+			padding: 1rem 1.25rem;
+		}
+		.older h2 {
+			width: auto;
+			flex: 1;
+		}
+		summary .summary {
+			order: 3;
+			flex-basis: 100%;
+		}
+		.chevron {
+			order: 2;
+		}
+		.github {
+			padding: 0 1.25rem 1.25rem;
+		}
+	}
+</style>

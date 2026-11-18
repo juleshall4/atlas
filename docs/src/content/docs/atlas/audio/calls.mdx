@@ -3,7 +3,7 @@ title: Calls
 description: Make voices easier to hear in WhatsApp and other app calls on the speaker.
 ---
 
-import Setting from '../../../components/Setting.astro';
+import Setting from '../../../../components/Setting.astro';
 
 ## Clearer calls
 
@@ -23,7 +23,22 @@ To know when an app call starts, Atlas needs a permission that Android only lets
 
 Atlas shows the same command in **Audio**, with a button to copy it.
 
-Atlas uses this permission only to check whether an app call is active. It does not read anything else.
+Atlas uses this permission only to check whether an app call is active.
+
+### Use an AI agent instead
+
+If you use an AI agent that can run commands on your computer, such as Claude Code or Codex, connect your phone with a USB cable and give the agent this prompt:
+
+```text
+My Android phone is connected to this computer with a USB cable. Help me give the Atlas app a permission over adb.
+
+1. Check that adb is installed. If it is not, install Android platform tools for my operating system.
+2. Run adb devices. If my phone is not listed, or shows as unauthorized, tell me how to turn on USB debugging and allow this computer on the phone. Then wait for me.
+3. Run this command: adb shell pm grant com.atlas android.permission.DUMP
+4. Tell me if it worked.
+
+Do not run any other commands on my phone.
+```
 
 ## Turn on Clearer calls
 

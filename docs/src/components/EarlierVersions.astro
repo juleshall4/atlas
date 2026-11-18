@@ -1,0 +1,28 @@
+---
+/** The list of older versions on What's new. Holds a Release for each one. */
+---
+
+<section class="earlier not-content" aria-labelledby="earlier-versions">
+	<h2 id="earlier-versions" class="label">Earlier versions</h2>
+	<div class="list">
+		<slot />
+	</div>
+</section>
+
+<style>
+	.earlier {
+		margin-top: 3.5rem;
+	}
+	.label {
+		margin: 0 0 1.25rem;
+		color: var(--sl-color-gray-2);
+		font-size: 0.8125rem;
+		font-weight: 500;
+		letter-spacing: 0.08em;
+		line-height: 1.125rem;
+		text-transform: uppercase;
+	}
+	.list {
+		border: 1px solid var(--sl-color-gray-5);
+	}
+</style>

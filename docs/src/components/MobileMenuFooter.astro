@@ -1,10 +1,14 @@
 ---
+import { appFor, sponsor } from '../apps';
+
 // The top bar has no room for these links on small screens, so the menu shows them.
+const current = appFor(Astro.url.pathname);
 ---
 
-<nav class="links" aria-label="Atlas">
-	<a href="https://github.com/juleshall4/atlas/releases/latest">Download</a>
-	<a href="https://github.com/juleshall4/atlas">GitHub</a>
+<nav class="links" aria-label="Links">
+	{current && <a href={`${current.github}/releases/latest`}>Download</a>}
+	<a href={current?.github ?? 'https://github.com/juleshall4'}>GitHub</a>
+	<a href={sponsor}>Sponsor</a>
 </nav>
 
 <style>

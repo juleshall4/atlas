@@ -1,0 +1,13 @@
+---
+title: Languages
+description: Word lists that let Atlas suggest and correct words in other languages.
+---
+
+import DownloadList from '../../../../components/DownloadList.astro';
+import languages from '../../../../data/languages.json';
+
+[How to add a language](/atlas/keyboard/languages/)
+
+<DownloadList items={languages.map(({ name, file, size, source, licence, licenceLink }) => ({
+	name, size, licence, licenceLink, detail: source, href: `/downloads/languages/${file}`,
+}))} />

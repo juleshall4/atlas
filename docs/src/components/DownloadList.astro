@@ -1,0 +1,101 @@
+---
+/**
+ * A list of files to download. Each row is the file's name, a line about it, its size and a download icon.
+ * The name, size and icon all download the file. A licence, when given, links to its text.
+ */
+interface Item {
+	name: string;
+	href: string;
+	size: string;
+	/** Such as "Fast, good for short messages" or where a word list comes from. */
+	detail: string;
+	licence?: string | null;
+	licenceLink?: string | null;
+	/** Leave out the licence part, because the page credits every file at once. */
+	noLicence?: boolean;
+}
+
+const { items } = Astro.props as { items: Item[] };
+const fileName = (href: string) => href.slice(href.lastIndexOf('/') + 1);
+---
+
+<ul class="downloads not-content">
+	{
+		items.map(({ name, href, size, detail, licence, licenceLink, noLicence }) => (
+			<li>
+				<span class="text">
+					<a class="name" href={href} download={fileName(href)}>{name}</a>
+					<span class="detail">
+						{detail}
+						{!noLicence && <> · {licence ? <a href={licenceLink}>{licence}</a> : 'licence not stated'}</>}
+					</span>
+				</span>
+				<a class="download" href={href} download={fileName(href)} aria-label={`Download ${name}, ${size}`}>
+					<span class="size">{size}</span>
+					<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+						<path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 20h14" />
+					</svg>
+				</a>
+			</li>
+		))
+	}
+</ul>
+
+<style>
+	.downloads {
+		margin: 1rem 0 0;
+		padding: 0;
+		list-style: none;
+	}
+	.downloads li {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		padding: 0.75rem 0;
+		border-bottom: 1px solid var(--sl-color-hairline-light);
+	}
+	.download {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		padding: 0.5rem 0 0.5rem 0.5rem;
+		text-decoration: none;
+	}
+	.detail a {
+		color: var(--sl-color-gray-2);
+	}
+	.text {
+		display: flex;
+		flex: 1;
+		flex-direction: column;
+		min-width: 0;
+	}
+	.name {
+		align-self: flex-start;
+		color: var(--sl-color-white);
+		font-weight: 500;
+		text-decoration: none;
+	}
+	.name:hover {
+		text-decoration: underline;
+	}
+	.detail,
+	.size {
+		color: var(--sl-color-gray-2);
+		font-size: var(--sl-text-sm);
+		line-height: 1.4;
+	}
+	svg {
+		flex-shrink: 0;
+	}
+	path {
+		fill: none;
+		stroke: var(--sl-color-gray-2);
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+	.download:hover path {
+		stroke: var(--sl-color-white);
+	}
+</style>

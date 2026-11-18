@@ -21,8 +21,8 @@ Check that **Quick open** is on in **Shortcuts**, and that the letter is given t
 
 ## A notification catches my swipes
 
-Turn on Atlas in Accessibility. Then swipes on the top row of keys go to the keyboard, not to the notification. Open **Keyboard** and select **Finish setup** to do this.
+Open **Keyboard**, select **Finish setup** and turn on Atlas in Accessibility. Swipes on the top row then go to the keyboard, not the notification.
 
 ## Something else is wrong
 
-[Send feedback](/help/feedback/) and say what you did and what happened.
+[Send feedback](/atlas/help/feedback/) and say what you did and what happened.

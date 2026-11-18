@@ -1,6 +1,7 @@
 ---
 title: Send feedback
 description: Report a problem or suggest an idea. Every message is read.
+next: false
 ---
 
 ## From Atlas
