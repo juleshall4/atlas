@@ -12,3 +12,8 @@ android {
         jniLibs.srcDir("jniLibs")
     }
 }
+
+dependencies {
+    // Ink compiles the Kotlin sources in the app module.
+    api("org.apache.commons:commons-compress:1.27.1")
+}
