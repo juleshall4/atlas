@@ -23,7 +23,7 @@ export default function Feedback() {
   const details = result.status === "ready"
     ? `Atlas version: ${result.data.version}\nPhone: ${result.data.phone}\nAndroid: ${result.data.android}`
     : "";
-  return <Screen title="Send feedback" subtitle={error || "Send me any feedback!"}>
+  return <Screen title="Send feedback" subtitle={error || undefined}>
     <Row title="Report a bug" endIcon={arrowOutward} onPress={() => void compose("Atlas bug report",
       `What happened?\n\n\nWhat did you expect to happen?\n\n\n${details}`)} />
     <Row title="Suggest an idea" endIcon={arrowOutward} onPress={() => void compose("Atlas idea", "What would you like Atlas to do?\n\n")} />

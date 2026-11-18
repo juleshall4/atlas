@@ -10,7 +10,7 @@ const options: { value: Appearance; label: string }[] = [
 export const appearanceLabel = ({ appearance }: State) => options.find(option => option.value === appearance)?.label ?? options[0].label;
 
 export default function AppearancePage() {
-  return <ChoicePage title="Appearance" subtitle="The colours of Atlas and the suggestion bar. System uses the dark theme setting of your phone."
+  return <ChoicePage title="Appearance"
     options={options}
     read={({ appearance }) => appearance}
     write={appearance => ({ appearance })} />;

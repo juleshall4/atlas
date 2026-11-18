@@ -1,7 +1,7 @@
 import { Screen, Section, Toggle, useAction, useSnapshot } from "ink";
 import { state, update } from "../../../lib/atlas";
 
-const subtitle = "Hold Alt and push a key to trigger action.";
+const subtitle = "Hold Alt and push a key to run an action.";
 
 // The actions that Alt and a key do in every app, by their setting names.
 const editing = [
