@@ -26,10 +26,12 @@ MOST_WORDS = 250_000
 # Bump when a file changes, so a new file never has an old file's name.
 VERSION = 1
 
-AOSP = ("AOSP", "Apache 2.0", "https://www.apache.org/licenses/LICENSE-2.0")
-LEIPZIG = ("Leipzig Corpora", "CC BY 4.0", "https://creativecommons.org/licenses/by/4.0/")
+DICTIONARIES = "https://codeberg.org/Helium314/aosp-dictionaries"
+AOSP = ("AOSP", DICTIONARIES, "Apache 2.0", "https://www.apache.org/licenses/LICENSE-2.0")
+LEIPZIG = ("Leipzig Corpora", "https://wortschatz.uni-leipzig.de/en/download", "CC BY 4.0",
+           "https://creativecommons.org/licenses/by/4.0/")
 
-# code, name, word list, one-letter words, (source, licence, licence link)
+# code, name, word list, one-letter words, (source, source link, licence, licence link)
 LANGUAGES = [
     ("hr", "Croatian", "main_hr", "i u a s o k", AOSP),
     ("cs", "Czech", "main_cs", "a v z s i o k u", AOSP),
@@ -38,7 +40,7 @@ LANGUAGES = [
     ("fi", "Finnish", "main_fi", "", AOSP),
     ("fr", "French", "main_fr", "à a y", AOSP),
     ("de", "German", "main_de", "", LEIPZIG),
-    ("hi-latn", "Hinglish", "main_hi_ZZ", "a i", ("HeliBoard community", None, None)),
+    ("hi-latn", "Hinglish", "main_hi_ZZ", "a i", ("HeliBoard community", DICTIONARIES, None, None)),
     ("hu", "Hungarian", "main_hu", "a s e ő ó", AOSP),
     ("it", "Italian", "main_it", "e a è i o", AOSP),
     ("nb", "Norwegian", "main_nb", "i å", AOSP),
@@ -77,7 +79,7 @@ def build(checkout, root):
     for old in downloads.iterdir():
         old.unlink()
     table, java = [], []
-    for code, name, source, singles, (origin, licence, licence_link) in sorted(LANGUAGES, key=lambda item: item[1]):
+    for code, name, source, singles, (origin, origin_link, licence, licence_link) in sorted(LANGUAGES, key=lambda item: item[1]):
         listed = words(checkout / "wordlists" / f"{source}.combined")
         text = io.StringIO()
         text.write(f"dictionary=main:{code},locale={code},description={name}\n")
@@ -91,7 +93,7 @@ def build(checkout, root):
         (downloads / file).write_bytes(data)
         sha256 = hashlib.sha256(data).hexdigest()
         table.append({"name": name, "file": file, "size": size(len(data)), "source": origin,
-                      "licence": licence, "licenceLink": licence_link})
+                      "sourceLink": origin_link, "licence": licence, "licenceLink": licence_link})
         letters = ", ".join(f'"{letter}"' for letter in singles.split())
         java.append(f'            new TypingLanguages.Language("{code}", "{name}", "{file}", "{sha256}", {len(data)}L, false, true, Set.of({letters}))')
         print(f"{name:24} {len(listed):7} words  {size(len(data)):>6}")

@@ -1,18 +1,20 @@
 ---
 /**
  * A list of files to download. Each row is the file's name, a line about it, its size and a download icon.
- * The name, size and icon all download the file. A licence, when given, links to its text.
+ * The name, size and icon all download the file. The line names who made the file and its licence,
+ * each a link of its own.
  */
 interface Item {
 	name: string;
 	href: string;
 	size: string;
-	/** Such as "Fast, good for short messages" or where a word list comes from. */
-	detail: string;
+	/** Such as "Fast". */
+	detail?: string;
+	/** Who made the file, such as "NVIDIA", and a link to their page for it. */
+	source: string;
+	sourceLink?: string | null;
 	licence?: string | null;
 	licenceLink?: string | null;
-	/** Leave out the licence part, because the page credits every file at once. */
-	noLicence?: boolean;
 }
 
 const { items } = Astro.props as { items: Item[] };
@@ -21,13 +23,15 @@ const fileName = (href: string) => href.slice(href.lastIndexOf('/') + 1);
 
 <ul class="downloads not-content">
 	{
-		items.map(({ name, href, size, detail, licence, licenceLink, noLicence }) => (
+		items.map(({ name, href, size, detail, source, sourceLink, licence, licenceLink }) => (
 			<li>
 				<span class="text">
 					<a class="name" href={href} download={fileName(href)}>{name}</a>
 					<span class="detail">
-						{detail}
-						{!noLicence && <> · {licence ? <a href={licenceLink}>{licence}</a> : 'licence not stated'}</>}
+						{detail && <>{detail} · </>}
+						{sourceLink ? <a href={sourceLink}>{source}</a> : source}
+						{' · '}
+						{licence ? (licenceLink ? <a href={licenceLink}>{licence}</a> : licence) : 'licence not stated'}
 					</span>
 				</span>
 				<a class="download" href={href} download={fileName(href)} aria-label={`Download ${name}, ${size}`}>

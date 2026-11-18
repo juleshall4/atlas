@@ -1,9 +1,32 @@
 {
-  "placeholder": true,
   "models": {
-    "canary-180m": { "name": "Canary 180M Flash", "file": "atlas-speech-canary-180m-flash-1.atlas", "size": "218 MB" },
-    "parakeet-english": { "name": "Parakeet English 0.6B", "file": "atlas-speech-parakeet-unified-en-1.atlas", "size": "731 MB" },
-    "parakeet-ultra": { "name": "Parakeet Ultra", "file": "atlas-speech-parakeet-ultra-1.atlas", "size": "740 MB" }
+    "canary-180m": {
+      "name": "Canary 180M Flash",
+      "url": "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-nemo-canary-180m-flash-en-es-de-fr-int8.tar.bz2",
+      "size": "154 MB",
+      "source": "NVIDIA",
+      "sourceLink": "https://huggingface.co/nvidia/canary-180m-flash",
+      "licence": "CC BY 4.0",
+      "licenceLink": "https://creativecommons.org/licenses/by/4.0/"
+    },
+    "parakeet-english": {
+      "name": "Parakeet Unified English 0.6B",
+      "url": "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-nemo-parakeet-unified-en-0.6b-int8-non-streaming.tar.bz2",
+      "size": "501 MB",
+      "source": "NVIDIA",
+      "sourceLink": "https://huggingface.co/nvidia/parakeet-unified-en-0.6b",
+      "licence": "NVIDIA Open Model License",
+      "licenceLink": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-open-model-license/"
+    },
+    "parakeet-ultra": {
+      "name": "Moondream Parakeet Ultra",
+      "url": "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-nemo-parakeet-tdt-0.6b-ultra-int8.tar.bz2",
+      "size": "487 MB",
+      "source": "Moondream",
+      "sourceLink": "https://huggingface.co/moondream/parakeet-ultra",
+      "licence": "CC BY 4.0",
+      "licenceLink": "https://creativecommons.org/licenses/by/4.0/"
+    }
   },
   "sections": {
     "english": [["Fast", "canary-180m"], ["Most accurate", "parakeet-english"]],

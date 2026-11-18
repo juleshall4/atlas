@@ -7,11 +7,11 @@ import DownloadList from '../../../../components/DownloadList.astro';
 import speech from '../../../../data/speech.json';
 
 export const rows = (section) => speech.sections[section].map(([detail, id]) => {
-	const { name, file, size } = speech.models[id];
-	return { name, detail, size, noLicence: true, href: `/downloads/speech/${file}` };
+	const { url, ...model } = speech.models[id];
+	return { ...model, detail, href: url };
 });
 
-Choose the language you speak, then fast or accurate.
+[How to add a model](/atlas/keyboard/speech/)
 
 ## English
 
@@ -25,8 +25,4 @@ Choose the language you speak, then fast or accurate.
 
 <DownloadList items={rows('european')} />
 
-Supports Bulgarian, Croatian, Czech, Danish, Dutch, Estonian, Finnish, Greek, Hungarian, Italian, Latvian, Lithuanian, Maltese, Polish, Portuguese, Romanian, Russian, Slovak, Slovenian, Swedish and Ukrainian.
-
-## Credits
-
-Canary and Parakeet English are by NVIDIA. Parakeet Ultra is by Moondream, based on NVIDIA's Parakeet. All are shared under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+Moondream Parakeet Ultra also understands Bulgarian, Croatian, Czech, Danish, Dutch, Estonian, Finnish, Greek, Hungarian, Italian, Latvian, Lithuanian, Maltese, Polish, Portuguese, Romanian, Russian, Slovak, Slovenian, Swedish and Ukrainian.
