@@ -387,8 +387,10 @@ class Composer(
         composition = Composition.None
         show(emptyList())
         val resumed = previous.takeIf { resumes }
-        val context = resumed?.context ?: before
-        val replaced = resumed?.inserted?.length ?: 0
+        val pronoun = if (resumed == null && !anchor.selected && field.fullStops
+            && standalonePronoun(before, anchor.after.orEmpty()) && words.english && autoCapitalise()) "I" else ""
+        val context = resumed?.context ?: (before.dropLast(pronoun.length) + pronoun)
+        val replaced = resumed?.inserted?.length ?: pronoun.length
         val leadingSpace = resumed?.leadingSpace ?: if (anchor.selected) "" else SwipeTyping.prefix(context)
         // Mid-sentence the next character may already be a space or punctuation, so another space would double up.
         val trailingSpace = resumed?.trailingSpace ?: (!anchor.selected && !closesWord(anchor.after?.firstOrNull()))
@@ -411,7 +413,7 @@ class Composer(
                 }
                 val word = choices.first()
                 val inserted = leadingSpace + word + if (trailingSpace) " " else ""
-                if (!edit(replaced, inserted)) return@recognise
+                if (!edit(replaced, pronoun + inserted)) return@recognise
                 val accepted = snapshot()
                 automaticSpace = accepted.takeIf { trailingSpace }
                 val swiped = Composition.Swiped(word, leadingSpace, trailingSpace, path, context, recognition, pending.endedAt,
@@ -420,7 +422,7 @@ class Composer(
                 remember(swiped)
                 confirmState(accepted) { confirmed ->
                     if (confirmed) {
-                        learnWord(completed, correction)
+                        learnWord(completed?.let { pronoun.ifEmpty { it } }, correction)
                         show(choices)
                         checkLookAlike()
                     }
@@ -1169,6 +1171,14 @@ class Composer(
         val cased = spelling.filter { it.isLetter() } != word.filter { it.isLetter() }
         if (punctuated && !autoPunctuation() || cased && !autoCapitalise()) return null
         return word to spelling
+    }
+
+    private fun standalonePronoun(before: String, after: String): Boolean {
+        if (!before.endsWith('i')) return false
+        val previous = before.getOrNull(before.length - 2)
+        val next = after.firstOrNull()
+        return (previous == null || !previous.isLetterOrDigit() && previous !in "'’")
+            && (next == null || !next.isLetterOrDigit() && next !in "'’")
     }
 
     /** "i." followed by a space is the word "I", not the start of "i.e.". */
