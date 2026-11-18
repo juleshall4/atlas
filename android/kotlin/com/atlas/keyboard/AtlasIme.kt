@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.graphics.Paint
 import android.hardware.display.DisplayManager
 import android.inputmethodservice.InputMethodService
@@ -65,6 +66,8 @@ class AtlasIme : InputMethodService() {
     private var lastSelectionStart = -1
     private val modifiers = Modifiers()
     private var strip: Strip? = null
+    /** Android restarts input inside a configuration change, such as a new phone theme. */
+    private var reconfiguring = false
     private var emoji: EmojiPages? = null
     private var emojiSearch: EmojiSearch? = null
     private var field = Field.None
@@ -211,6 +214,15 @@ class AtlasIme : InputMethodService() {
         showModifiers()
     }
 
+    override fun onConfigurationChanged(configuration: Configuration) {
+        reconfiguring = true
+        try {
+            super.onConfigurationChanged(configuration)
+        } finally {
+            reconfiguring = false
+        }
+    }
+
     override fun onStartInput(info: EditorInfo, restarting: Boolean) {
         preserveDestinationInput()
         editor.cancelState()
@@ -238,7 +250,11 @@ class AtlasIme : InputMethodService() {
         main.removeCallbacks(showStrip)
         main.removeCallbacks(hideStrip)
         if (editing) {
-            composer.start(field, info.initialSelStart, info.initialSelEnd)
+            // A configuration change restarts input with the field's first EditorInfo, whose selection is
+            // from when the field opened. Ask the field where the cursor is now.
+            val now = if (reconfiguring) currentInputConnection?.getSurroundingText(0, 0, 0)?.takeIf { it.offset >= 0 } else null
+            composer.start(field, now?.let { it.offset + it.selectionStart } ?: info.initialSelStart,
+                now?.let { it.offset + it.selectionEnd } ?: info.initialSelEnd)
             main.post(showStrip)
             overlay.show()
             BackService.catchTouchpad(::catchTouchpad)
