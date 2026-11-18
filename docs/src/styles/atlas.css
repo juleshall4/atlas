@@ -158,6 +158,26 @@ site-search button[data-open-modal] svg {
 		--sl-mobile-toc-height: 0rem;
 	}
 }
+@media (min-width: 50rem) and (hover: hover) and (forced-colors: none) {
+	.sidebar-pane {
+		--sidebar-scrollbar-thumb: transparent;
+	}
+	.sidebar-pane:hover {
+		--sidebar-scrollbar-thumb: var(--sl-color-gray-4);
+	}
+	.sidebar-pane::-webkit-scrollbar {
+		width: 6px;
+	}
+	.sidebar-pane::-webkit-scrollbar-thumb {
+		background: var(--sidebar-scrollbar-thumb);
+	}
+	@supports not selector(::-webkit-scrollbar) {
+		.sidebar-pane {
+			scrollbar-width: thin;
+			scrollbar-color: var(--sidebar-scrollbar-thumb) transparent;
+		}
+	}
+}
 @media (min-width: 50rem) {
 	.main-frame .content-panel:first-child {
 		padding-top: 2.875rem;
@@ -225,7 +245,7 @@ site-search button[data-open-modal] svg {
 }
 .right-sidebar-panel h2 {
 	margin-bottom: 0.625rem;
-	color: var(--sl-color-gray-2);
+	color: var(--sl-color-white);
 	font-size: 0.8125rem;
 	font-weight: 500;
 	letter-spacing: 0.06em;
