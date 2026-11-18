@@ -1,6 +1,6 @@
 # Writing style
 
-All text people read in Atlas follows this guide: the in-app guide and the guide site, setup, settings, errors and `release-notes.txt`.
+All text people read in Atlas follows this guide: the guide site, setup, settings, errors and `release-notes.txt`.
 
 Atlas uses the GOV.UK style. It is plain English that is clear and quick to read, without sounding like a machine. The rules below are the parts that apply to Atlas, taken from these sources:
 
@@ -22,7 +22,7 @@ Rules marked **Atlas** are this project's own additions.
 ## Plain English
 
 - Use short, common words: "use" not "utilise", "help" not "assist", "about" not "approximately", "start" not "initiate".
-- Use the words people search for. The search terms in `lib/guide.ts` show which words people use.
+- Use the words people search for.
 - Avoid words ending in "-ion" and "-ment" where a verb works: "when you install" not "on installation".
 - Delete "in order to". Write "to".
 - Avoid metaphors and idioms. They do not say what you actually mean.
@@ -50,7 +50,7 @@ Rules marked **Atlas** are this project's own additions.
 
 - Put the most important information first, in each page, paragraph, sentence, heading and link.
 - Keep sentences to 25 words or fewer. Split longer ones.
-- Keep paragraphs to 5 sentences or fewer. For guide rows, aim for 1 to 3 sentences.
+- Keep paragraphs to 5 sentences or fewer.
 - One idea per sentence, but join two closely related steps when that reads more naturally: "Rest your finger on the space bar until you feel a click, then slide left or right."
 - Use positive contractions: "you'll", "it's", "you're".
 - Do not use negative contractions. Write "cannot", "do not" and "is not". People find "can't" and "don't" harder to read.
