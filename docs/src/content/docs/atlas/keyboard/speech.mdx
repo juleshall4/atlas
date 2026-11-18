@@ -1,0 +1,33 @@
+---
+title: Speech to text
+description: Say what you want to type. Atlas turns it into text on your phone, without the internet.
+---
+
+import Setting from '../../../../components/Setting.astro';
+
+Atlas does not connect to the internet, so you download a speech model and add it yourself. Everything you say stays on your phone.
+
+## Turn on speech to text
+
+Open **Keyboard** and turn on **Speech to text**. Atlas asks to use the microphone the first time.
+
+<Setting path={['Keyboard']} name="Speech to text" on />
+
+## Add a model
+
+1. On your phone, download a model from the [Downloads](/atlas/downloads/speech/) page.
+2. In Atlas, open **Keyboard**.
+3. Scroll to **Speech to text** and select **Model**.
+4. Select **Add a downloaded model**, then choose the file you downloaded.
+
+You can leave the Model page while Atlas adds the model. When it finishes, you can delete the downloaded file.
+
+## Speak
+
+1. Select a text field.
+2. Press Fn twice.
+3. Speak.
+
+The speech model stops listening when you stop speaking. Atlas then types what you said. To stop the model sooner, press any key.
+
+A waveform in the suggestion bar shows when the model is listening. If you turned off the suggestion bar, it appears temporarily during speech to text.

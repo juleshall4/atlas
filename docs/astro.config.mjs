@@ -32,6 +32,7 @@ export default defineConfig({
 								'atlas/keyboard/keys',
 								'atlas/keyboard/your-words',
 								'atlas/keyboard/languages',
+								'atlas/keyboard/speech',
 								'atlas/keyboard/shortcuts',
 							],
 						},
