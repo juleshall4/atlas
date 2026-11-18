@@ -11,16 +11,20 @@ import android.view.Gravity
 import android.widget.TextView
 import com.atlas.engine.SwipeTyping
 
-/** Owns the Android file picker's result and keeps its document grant alive during the transfer. */
+/**
+ * Owns the Android file picker's result and keeps its document grant alive during the transfer. It exports or
+ * imports learned words, or adds a downloaded language.
+ */
 class LearningTransferActivity : Activity() {
     private val exporting get() = intent.getBooleanExtra(EXPORTING, false)
+    private val language get() = intent.getBooleanExtra(LANGUAGE, false)
 
     @Suppress("DEPRECATION")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(TextView(this).apply {
             gravity = Gravity.CENTER
-            text = if (exporting) "Exporting words…" else "Importing words…"
+            text = if (language) "Adding language…" else if (exporting) "Exporting words…" else "Importing words…"
         })
         if (savedInstanceState != null) return
         val picker = Intent(if (exporting) Intent.ACTION_CREATE_DOCUMENT else Intent.ACTION_OPEN_DOCUMENT)
@@ -48,7 +52,8 @@ class LearningTransferActivity : Activity() {
             return
         }
         val typing = SwipeTyping.get(this)
-        if (exporting) typing.exportConfig(uri) { complete(it == null, it) }
+        if (language) typing.addLanguage(uri) { complete(it == null, it) }
+        else if (exporting) typing.exportConfig(uri) { complete(it == null, it) }
         else typing.importConfig(uri) { complete(it == null, it) }
     }
 
@@ -64,16 +69,18 @@ class LearningTransferActivity : Activity() {
         private const val PICK_DOCUMENT = 1
         private const val RECEIVER = "receiver"
         private const val EXPORTING = "exporting"
+        private const val LANGUAGE = "language"
         private const val ERROR = "error"
 
-        internal fun start(activity: Activity, exporting: Boolean, complete: (Boolean, String?) -> Unit) {
+        /** [language] picks a downloaded language file instead of a backup. */
+        internal fun start(activity: Activity, exporting: Boolean, complete: (Boolean, String?) -> Unit, language: Boolean = false) {
             val receiver = object : ResultReceiver(Handler(Looper.getMainLooper())) {
                 override fun onReceiveResult(resultCode: Int, resultData: Bundle?) {
                     complete(resultCode == RESULT_OK, resultData?.getString(ERROR))
                 }
             }
             activity.startActivity(Intent(activity, LearningTransferActivity::class.java)
-                .putExtra(EXPORTING, exporting).putExtra(RECEIVER, receiver))
+                .putExtra(EXPORTING, exporting).putExtra(LANGUAGE, language).putExtra(RECEIVER, receiver))
         }
     }
 }

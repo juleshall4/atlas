@@ -3,6 +3,7 @@ package com.atlas.engine;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -22,8 +23,12 @@ public final class TypedPredictions {
     private static final int CORRECTIONS = 3;
     /** A fix goes before the completions only when it is clearly more common than all of them. */
     private static final int CORRECTION_LEAD = 40;
-    /** Sorted, so the completions of a prefix sit next to each other. */
-    private final String[] words;
+    /** Lowercase words with their accents, sorted by {@link #folded}, so the completions of a prefix sit next to each other. */
+    private final String[] keys;
+    /** The keys without accents, so "cafe" finds "café". */
+    private final String[] folded;
+    /** How each word is written, such as "Paris". Most words are written as their key. */
+    private final String[] spellings;
     private final float[] frequencies;
     /** The most frequent words, which are all the next word can be when the model has no opinion. */
     private final int[] common;
@@ -35,59 +40,123 @@ public final class TypedPredictions {
 
     /** {@code dictionary} is the full word list in combined format; it adds rarer words such as "nuggets" to the context model's list. */
     TypedPredictions(Reader source, Reader dictionary, ToDoubleFunction<String> frequency) throws IOException {
-        Map<String, Double> vocabulary = new HashMap<>();
-        BufferedReader reader = new BufferedReader(source);
-        String line;
-        while ((line = reader.readLine()) != null) add(vocabulary, key(line), frequency);
-        if (dictionary != null) {
-            reader = new BufferedReader(dictionary);
+        this(source, dictionary == null ? null : CombinedDictionary.read(dictionary, TypingLanguages.ENGLISH), frequency,
+                TypingLanguages.ENGLISH);
+    }
+
+    /** {@code source} is the context model's word list, which only English has. */
+    TypedPredictions(Reader source, CombinedDictionary dictionary, ToDoubleFunction<String> frequency,
+                     TypingLanguages.Language language) throws IOException {
+        // In list order, which breaks ties between equally common words: lists put the more common one first.
+        Map<String, String> vocabulary = new LinkedHashMap<>();
+        if (source != null) {
+            BufferedReader reader = new BufferedReader(source);
+            String line;
             while ((line = reader.readLine()) != null) {
-                String word = dictionaryWord(line);
-                if (word != null) add(vocabulary, key(word), frequency);
+                String key = key(line, language);
+                // The context model's accented words are names and borrowed words, such as "bogotá".
+                if (SwipeWords.swipeable(key)) add(vocabulary, key, key);
             }
         }
-        words = vocabulary.keySet().toArray(new String[0]);
-        Arrays.sort(words);
-        frequencies = new float[words.length];
-        for (int i = 0; i < words.length; i++) frequencies[i] = vocabulary.get(words[i]).floatValue();
-        common = java.util.stream.IntStream.range(0, words.length).boxed()
-                .sorted(Comparator.<Integer>comparingDouble(i -> -frequencies[i]).thenComparing(i -> words[i]))
+        if (dictionary != null) for (CombinedDictionary.Entry entry : dictionary.entries)
+            add(vocabulary, key(entry.spelling, language), entry.spelling);
+        String[] unsorted = vocabulary.keySet().toArray(new String[0]);
+        String[] unsortedFolded = new String[unsorted.length];
+        for (int i = 0; i < unsorted.length; i++) unsortedFolded[i] = fold(unsorted[i]);
+        Map<String, Integer> listed = new HashMap<>();
+        for (int i = 0; i < unsorted.length; i++) listed.put(unsorted[i], i);
+        Integer[] order = new Integer[unsorted.length];
+        for (int i = 0; i < order.length; i++) order[i] = i;
+        Arrays.sort(order, Comparator.<Integer, String>comparing(i -> unsortedFolded[i]).thenComparing(i -> unsorted[i]));
+        keys = new String[order.length];
+        folded = new String[order.length];
+        spellings = new String[order.length];
+        frequencies = new float[order.length];
+        for (int i = 0; i < order.length; i++) {
+            keys[i] = unsorted[order[i]];
+            folded[i] = unsortedFolded[order[i]];
+            spellings[i] = vocabulary.get(keys[i]);
+            frequencies[i] = (float) frequency.applyAsDouble(keys[i]);
+        }
+        common = java.util.stream.IntStream.range(0, keys.length).boxed()
+                .sorted(Comparator.<Integer>comparingDouble(i -> -frequencies[i]).thenComparing(i -> listed.get(keys[i])))
                 .limit(COMMON_WORDS).mapToInt(Integer::intValue).toArray();
     }
 
-    private static void add(Map<String, Double> vocabulary, String word, ToDoubleFunction<String> frequency) {
-        if (!word.isEmpty() && SuggestionPolicy.allowed(word) && !vocabulary.containsKey(word))
-            vocabulary.put(word, frequency.applyAsDouble(word));
+    /** The first spelling of a word wins; the dictionary lists the most common one first. */
+    private static void add(Map<String, String> vocabulary, String key, String spelling) {
+        if (!key.isEmpty() && SuggestionPolicy.allowed(key)) vocabulary.putIfAbsent(key, spelling);
     }
 
-    /** The word on a " word=nuggets,f=72,flags=,…" line, or null for names, unused words, and words marked offensive or not a word. */
-    static String dictionaryWord(String line) {
-        if (!line.startsWith(" word=")) return null;
-        String[] fields = line.trim().split(",");
-        if (fields.length < 3 || !fields[1].startsWith("f=") || !fields[2].startsWith("flags=")) return null;
-        String word = fields[0].substring(5), flags = fields[2].substring(6);
-        if (fields[1].equals("f=0") || flags.contains("offensive") || flags.contains("nonword")) return null;
-        return word.equals(word.toLowerCase(Locale.ROOT)) ? word : null;
+    static String key(String word) { return key(word, TypingLanguages.ENGLISH); }
+
+    private static String key(String word, TypingLanguages.Language language) {
+        String lower = lower(word);
+        return language.singleLetters.contains(lower) ? lower : SwipeWords.normalise(word);
     }
 
-    static String key(String word) {
-        return word.equalsIgnoreCase("a") || word.equalsIgnoreCase("i")
-                ? word.toLowerCase(Locale.ROOT) : SwipeWords.normalise(word);
+    private static String lower(String word) {
+        return Normalizer.normalize(word, Normalizer.Form.NFC).toLowerCase(Locale.ROOT).replace('’', '\'');
+    }
+
+    /** The word without accents, letter for letter, so the result has the same length. */
+    static String fold(String word) {
+        StringBuilder result = null;
+        for (int i = 0; i < word.length(); i++) {
+            char letter = word.charAt(i), plain = fold(letter);
+            if (plain != letter && result == null) result = new StringBuilder(word.substring(0, i));
+            if (result != null) result.append(plain);
+        }
+        return result == null ? word : result.toString();
+    }
+
+    private static char fold(char letter) {
+        if (letter < 0x80) return letter;
+        switch (letter) {
+            case 'ł': return 'l';
+            case 'ø': return 'o';
+            case 'đ': return 'd';
+            case 'ħ': return 'h';
+            case 'ı': return 'i';
+            default: return Normalizer.normalize(String.valueOf(letter), Normalizer.Form.NFD).charAt(0);
+        }
+    }
+
+    /** Whether the word starts with the typed letters. A letter typed without its accent also matches it with one. */
+    private static boolean startsWith(String word, String typed) {
+        if (word.length() < typed.length()) return false;
+        for (int i = 0; i < typed.length(); i++) {
+            char letter = word.charAt(i), key = typed.charAt(i);
+            if (letter != key && (fold(key) != key || fold(letter) != key)) return false;
+        }
+        return true;
+    }
+
+    private int indexOf(String key) {
+        String plain = fold(key);
+        for (int i = lowerBound(plain); i < keys.length && folded[i].equals(plain); i++) if (keys[i].equals(key)) return i;
+        return -1;
     }
 
     boolean contains(String word) {
-        return Arrays.binarySearch(words, word.toLowerCase(Locale.ROOT).replace('\u2019', '\'')) >= 0;
+        return indexOf(lower(word)) >= 0;
     }
 
     private double frequency(String word) {
-        int index = Arrays.binarySearch(words, word);
+        int index = indexOf(word);
         return index < 0 ? 0 : frequencies[index];
+    }
+
+    /** How the word is written, such as "Paris" for "paris". */
+    private String spelling(String key) {
+        int index = indexOf(key);
+        return index < 0 ? key : spellings[index];
     }
 
     public static String prefix(String before) {
         int start = before.length();
         while (start > 0 && (Character.isLetter(before.charAt(start - 1))
-                || before.charAt(start - 1) == '\'' || before.charAt(start - 1) == '\u2019')) start--;
+                || before.charAt(start - 1) == '\'' || before.charAt(start - 1) == '’')) start--;
         return before.substring(start);
     }
 
@@ -97,24 +166,27 @@ public final class TypedPredictions {
 
     /** {@code context} holds the context model's scores for the words before the cursor. Empty means rank by frequency. */
     String[] suggest(String prefix, List<LanguageHabits.Entry> personal, int today, Predicate<String> allowed, Map<String, Double> context) {
-        String lower = prefix.toLowerCase(Locale.ROOT).replace('\u2019', '\'');
+        String lower = lower(prefix);
         Map<String, Double> matches = new LinkedHashMap<>();
         Map<String, Double> similar = new LinkedHashMap<>();
         if (lower.isEmpty()) {
             // Ranking every word takes too long for the next word, and only the model's picks and common words can win.
             for (String word : context.keySet()) {
-                int index = Arrays.binarySearch(words, word);
+                int index = indexOf(word);
                 if (index >= 0 && allowed.test(word)) matches.put(word, (double) frequencies[index]);
             }
-            for (int index : common) if (allowed.test(words[index])) matches.putIfAbsent(words[index], (double) frequencies[index]);
-        } else for (int i = lowerBound(lower); i < words.length && words[i].startsWith(lower); i++)
-            if (allowed.test(words[i])) matches.put(words[i], (double) frequencies[i]);
+            for (int index : common) if (allowed.test(keys[index])) matches.putIfAbsent(keys[index], (double) frequencies[index]);
+        } else {
+            String plain = fold(lower);
+            for (int i = lowerBound(plain); i < keys.length && folded[i].startsWith(plain); i++)
+                if (startsWith(keys[i], lower) && allowed.test(keys[i])) matches.put(keys[i], (double) frequencies[i]);
+        }
         // A saved word ranks like any other word, with its own use counted in its frequency.
         for (LanguageHabits.Entry entry : personal) {
             if (!entry.active(today) || !SuggestionPolicy.allowed(entry.word) || !allowed.test(entry.word)) continue;
             double frequency = entry.frequency((float) frequency(entry.word), today);
             // With no letters, only the model's picks and common words take part, so other saved words stay out too.
-            if (entry.word.startsWith(lower) && (!lower.isEmpty() || matches.containsKey(entry.word)))
+            if (startsWith(entry.word, lower) && (!lower.isEmpty() || matches.containsKey(entry.word)))
                 matches.merge(entry.word, frequency, Math::max);
             else if (entry.support(today) >= SPELLING_SUPPORT && similar(lower, entry.word)) similar.put(entry.word, frequency);
         }
@@ -130,26 +202,28 @@ public final class TypedPredictions {
         addCorrections(result, lower, allowed, context, frequency);
         // The typed word is already in the text, so nobody taps it; "deli" leaves the bar to "delicious" and "delight".
         if (result.remove(lower)) result.add(lower);
-        return result.stream().limit(8).toArray(String[]::new);
+        return result.stream().limit(8).map(this::spelling).toArray(String[]::new);
     }
 
     /** Known words one typo away, as "the" is from "teh", for a typed word the dictionary does not know. */
     private void addCorrections(List<String> result, String lower, Predicate<String> allowed, Map<String, Double> context,
                                 Comparator<Map.Entry<String, Double>> frequency) {
         if (lower.length() < CORRECTION_LENGTH || contains(lower)) return;
-        int limit = lower.length() >= 7 ? 2 : 1;
+        // A missing accent is no typo, so "cafe" is no distance from "café".
+        String plain = fold(lower);
+        int limit = plain.length() >= 7 ? 2 : 1;
         Map<String, Integer> distances = new HashMap<>();
         Map<String, Double> found = new LinkedHashMap<>();
         // The words are sorted, so only the runs that start the same way need checking: "h" and the swapped "th" for "hte".
-        String swapped = "" + lower.charAt(1) + lower.charAt(0);
-        for (String start : lower.charAt(0) == lower.charAt(1) ? List.of(lower.substring(0, 1)) : List.of(lower.substring(0, 1), swapped))
-            for (int i = lowerBound(start); i < words.length && words[i].startsWith(start); i++) {
-                String word = words[i];
-                if (word.length() < 2 || !sameStart(lower, word) || result.contains(word)) continue;
-                int distance = distance(lower, word, limit);
-                if (distance > limit || !allowed.test(word)) continue;
-                distances.put(word, distance);
-                found.put(word, (double) frequencies[i]);
+        String swapped = "" + plain.charAt(1) + plain.charAt(0);
+        for (String start : plain.charAt(0) == plain.charAt(1) ? List.of(plain.substring(0, 1)) : List.of(plain.substring(0, 1), swapped))
+            for (int i = lowerBound(start); i < keys.length && folded[i].startsWith(start); i++) {
+                String word = folded[i];
+                if (word.length() < 2 || !sameStart(plain, word) || result.contains(keys[i])) continue;
+                int distance = distance(plain, word, limit);
+                if (distance > limit || !allowed.test(keys[i])) continue;
+                distances.put(keys[i], distance);
+                found.put(keys[i], (double) frequencies[i]);
             }
         Comparator<Map.Entry<String, Double>> likely = Comparator
                 .<Map.Entry<String, Double>>comparingInt(entry -> distances.get(entry.getKey()))
@@ -174,8 +248,11 @@ public final class TypedPredictions {
     }
 
     private int lowerBound(String prefix) {
-        int index = Arrays.binarySearch(words, prefix);
-        return index < 0 ? -index - 1 : index;
+        int index = Arrays.binarySearch(folded, prefix);
+        if (index < 0) return -index - 1;
+        // Several keys can share a folded form, as "cote" and "côté" do, so find the first.
+        while (index > 0 && folded[index - 1].equals(prefix)) index--;
+        return index;
     }
 
     /** Typos rarely change the first letter, so a fix keeps it, unless the first two letters swapped as in "hte". */

@@ -1,10 +1,10 @@
 import { Field, Screen, Section, Toggle, navigate, useAction, useSnapshot } from "ink";
 import keyboard from "../../assets/icons/keyboard.svg";
 import { state, update, type State } from "../../lib/atlas";
+import { languageLabel } from "./language";
 import { liftLabel } from "./lift";
 import { setupDone, setupLeft } from "./setup";
 import { skinToneLabel } from "./skin-tone";
-import { spellingLabel } from "./spelling";
 import { tapKeysLabel } from "./tap-keys";
 import { vibrationLabel } from "./vibration";
 
@@ -26,7 +26,7 @@ export default function Keyboard() {
         onChange={autoCapitalise => save.run({ autoCapitalise })} />
       <Toggle label="Auto-punctuation" value={settings.autoPunctuation}
         onChange={autoPunctuation => save.run({ autoPunctuation })} />
-      <Field label="Spelling" href="/settings/spelling">{spellingLabel(settings)}</Field>
+      <Field label="Language" href="/settings/language">{languageLabel(settings)}</Field>
       <Field label="Skin tone" href="/settings/skin-tone">{skinToneLabel(settings)}</Field>
       <Field label="Your words" href="/settings/data">{wordsLabel(settings)}</Field>
     </Section>

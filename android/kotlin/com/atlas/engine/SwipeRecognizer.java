@@ -45,7 +45,8 @@ public final class SwipeRecognizer implements AutoCloseable {
     /** Where the models are copied out of the APK, so the engine can open them as files. */
     static File models(Context context) { return new File(context.getNoBackupFilesDir(), "swipe-models-v1"); }
 
-    private static File installedModels(Context context) throws IOException {
+    /** Copies the models out of the APK if they are missing or changed, and says where they are. */
+    static File installedModels(Context context) throws IOException {
         File file = models(context);
         ModelAssets.install(context.getAssets(), file.toPath());
         return file;

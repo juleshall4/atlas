@@ -17,6 +17,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.zip.GZIPInputStream;
 
 public final class SwipeTyping {
     private static volatile SwipeTyping instance;
@@ -25,7 +26,10 @@ public final class SwipeTyping {
     private final Handler main = new Handler(Looper.getMainLooper());
     private final AtomicInteger pendingExamples = new AtomicInteger();
     private SwipeRecognizer recogniser;
-    private volatile TypedPredictions typedPredictions;
+    /** The chosen typing language. Its words may still be loading. */
+    private volatile TypingLanguages.Language language = TypingLanguages.ENGLISH;
+    /** Typed suggestions, which load before swipe typing and work without it. Null while loading or after a failure. */
+    private volatile Vocabulary vocabulary;
     private volatile String loadError;
     private volatile String readiness = "loading";
     private int loadingRetries;
@@ -47,6 +51,16 @@ public final class SwipeTyping {
     private int configuredDay = -1, activeCount;
     private volatile Words wordView = new Words(new String[0], new String[0], new String[0]);
     private volatile BlockedWords blockedWords;
+
+    /** A language's words, ready for typed suggestions. */
+    private static final class Vocabulary {
+        final TypingLanguages.Language language;
+        final CombinedDictionary words;
+        final TypedPredictions predictions;
+        Vocabulary(TypingLanguages.Language language, CombinedDictionary words, TypedPredictions predictions) {
+            this.language = language; this.words = words; this.predictions = predictions;
+        }
+    }
 
     public static final class Words {
         public final String[] words, descriptions, swipeStatuses;
@@ -85,35 +99,91 @@ public final class SwipeTyping {
         accuracyFile = new AtomicFile(new File(context.getNoBackupFilesDir(), "word-accuracy-v1"));
         worker.execute(() -> {
             loadHabits();
-            try {
-                try (DataInputStream input = new DataInputStream(accuracyFile.openRead())) { accuracy.read(input); }
-                catch (IOException | RuntimeException ignored) { accuracy = new PersonalizationStats(); }
-                // Coordinate calibration and its statistics are deliberately not migrated into word learning.
-                new AtomicFile(new File(context.getNoBackupFilesDir(), "swipe-calibration-v1")).delete();
-                new AtomicFile(new File(context.getNoBackupFilesDir(), "swipe-accuracy-v1")).delete();
-                loadEngine();
-            } catch (IOException | RuntimeException | LinkageError error) {
-                unavailable(error);
-            }
+            try (DataInputStream input = new DataInputStream(accuracyFile.openRead())) { accuracy.read(input); }
+            catch (IOException | RuntimeException ignored) { accuracy = new PersonalizationStats(); }
+            // Coordinate calibration and its statistics are deliberately not migrated into word learning.
+            new AtomicFile(new File(context.getNoBackupFilesDir(), "swipe-calibration-v1")).delete();
+            new AtomicFile(new File(context.getNoBackupFilesDir(), "swipe-accuracy-v1")).delete();
+            // Typing comes first, so suggestions work sooner and still work if swipe typing fails.
+            loadTyping();
+            try { loadEngine(); }
+            catch (IOException | RuntimeException | LinkageError error) { unavailable(error); }
         });
+    }
+
+    /** Loads the chosen language's words for typed suggestions. A language whose file is missing falls back to English. */
+    private void loadTyping() {
+        long began = SystemClock.uptimeMillis();
+        TypingLanguages.Language chosen = TypingLanguages.find(TypingSettings.language(context));
+        if (!TypingLanguages.installed(context, chosen)) chosen = TypingLanguages.ENGLISH;
+        language = chosen;
+        vocabulary = null;
+        try {
+            CombinedDictionary words;
+            TypedPredictions predictions;
+            if (chosen.english) {
+                // The copies on disk are already checked and need no unzipping, unlike the ones in the APK.
+                File models = SwipeRecognizer.installedModels(context);
+                File vocabularyFile = new File(models, "hungry_jellyfish/vocab.txt");
+                try (Reader list = new InputStreamReader(new FileInputStream(vocabularyFile), "UTF-8")) {
+                    ProperNames.load(list);
+                }
+                try (Reader dictionary = new InputStreamReader(new FileInputStream(new File(models, "english.combined")), "UTF-8")) {
+                    words = CombinedDictionary.read(dictionary, chosen);
+                }
+                try (Reader list = new InputStreamReader(new FileInputStream(vocabularyFile), "UTF-8")) {
+                    predictions = new TypedPredictions(list, words, words::frequency, chosen);
+                }
+            } else {
+                try (Reader dictionary = new InputStreamReader(new GZIPInputStream(
+                        new FileInputStream(TypingLanguages.file(context, chosen)), 65536), "UTF-8")) {
+                    words = CombinedDictionary.read(dictionary, chosen);
+                }
+                predictions = new TypedPredictions(null, words, words::frequency, chosen);
+            }
+            // Another language may have been chosen while this one loaded; its own load follows.
+            if (language == chosen) vocabulary = new Vocabulary(chosen, words, predictions);
+            Log.d("TouchpadSwipe", chosen.name + " words ready in " + (SystemClock.uptimeMillis() - began) + " ms");
+        } catch (IOException | RuntimeException error) {
+            Log.e("TouchpadSwipe", "Could not load " + chosen.name + " words", error);
+        }
+    }
+
+    /** Typed suggestions switch to the language chosen in settings. Swipe typing stays in English. */
+    public void languageChanged() {
+        language = TypingLanguages.find(TypingSettings.language(context));
+        worker.execute(this::loadTyping);
+    }
+
+    public TypingLanguages.Language language() { return language; }
+    public boolean english() { return language.english; }
+
+    /** Keeps a language file from the download page and switches typing to it. */
+    public void addLanguage(Uri source, OperationCallback callback) {
+        // Copying and checking the file takes a moment, so it stays off the worker that typing uses.
+        new Thread(() -> {
+            String failure = null;
+            try (InputStream input = context.getContentResolver().openInputStream(source)) {
+                if (input == null) throw new IOException("Could not open the language file");
+                TypingLanguages.Language added = TypingLanguages.add(context, input);
+                TypingSettings.language(context, added.code);
+                languageChanged();
+            } catch (TypingLanguages.NotLanguage error) {
+                failure = "This is not an Atlas language file. Download one from the languages page.";
+            } catch (IOException | RuntimeException error) {
+                Log.w("TouchpadSwipe", "Could not add a language", error);
+                failure = "Could not add the language. Try again.";
+            }
+            operationResult(callback, failure);
+        }, "AtlasLanguage").start();
     }
 
     private void loadEngine() throws IOException {
         long began = SystemClock.uptimeMillis();
         if (recogniser != null) recogniser.close();
-        recogniser = null; typedPredictions = null;
+        recogniser = null;
         configuredRevision = -1; configuredDay = -1; activeCount = 0;
         recogniser = new SwipeRecognizer(context);
-        // The copies on disk are already checked and need no unzipping, unlike the ones in the APK.
-        File models = SwipeRecognizer.models(context);
-        File vocabularyFile = new File(models, "hungry_jellyfish/vocab.txt");
-        try (Reader vocabulary = new InputStreamReader(new FileInputStream(vocabularyFile), "UTF-8")) {
-            ProperNames.load(vocabulary);
-        }
-        try (Reader vocabulary = new InputStreamReader(new FileInputStream(vocabularyFile), "UTF-8");
-             Reader dictionary = new InputStreamReader(new FileInputStream(new File(models, "english.combined")), "UTF-8")) {
-            typedPredictions = new TypedPredictions(vocabulary, dictionary, word -> recogniser.frequency(word));
-        }
         syncDictionary(); publish();
         loadError = null; readiness = "ready";
         Log.d("TouchpadSwipe", "Swipe engine ready in " + (SystemClock.uptimeMillis() - began) + " ms");
@@ -121,7 +191,7 @@ public final class SwipeTyping {
 
     private void unavailable(Throwable error) {
         SwipeRecognizer failed = recogniser;
-        recogniser = null; typedPredictions = null;
+        recogniser = null;
         loadError = "Swipe typing unavailable. Retry loading in settings.";
         readiness = "unavailable";
         if (failed != null) {
@@ -138,6 +208,7 @@ public final class SwipeTyping {
     public void retryLoading(OperationCallback callback) {
         worker.execute(() -> {
             String error = null;
+            if (vocabulary == null) loadTyping();
             if (!"ready".equals(readiness)) {
                 if (loadingRetries >= 2) error = "Swipe loading retry limit reached. Restart Atlas to try again.";
                 else {
@@ -215,7 +286,8 @@ public final class SwipeTyping {
         worker.execute(() -> {
             String replacement = null;
             try {
-                String found = recogniser == null ? null : recogniser.lookAlike(SentenceContext.words(before), word, next.replace('\u2019', '\''), typed);
+                // The look-alikes, such as "were" and "we're", and the model that chooses between them are English.
+                String found = recogniser == null || !english() ? null : recogniser.lookAlike(SentenceContext.words(before), word, next.replace('\u2019', '\''), typed);
                 if (found != null && wordAllowed(rendered(found, variant))) replacement = rendered(found, variant);
             } catch (RuntimeException | LinkageError error) {
                 if (recogniser != null && !recogniser.isOpen()) unavailable(error);
@@ -237,7 +309,9 @@ public final class SwipeTyping {
             String[] result;
             String failure = null;
             try {
-                if (typedPredictions == null) throw new IllegalStateException(loadError);
+                Vocabulary current = vocabulary;
+                if (current == null) throw new IllegalStateException("Word suggestions are loading");
+                boolean english = current.language.english;
                 final String prefix = TypedPredictions.prefix(before);
                 final String contextText = before.substring(0, before.length() - prefix.length());
                 int day = today();
@@ -245,9 +319,11 @@ public final class SwipeTyping {
                 if (cancelled.get()) {
                     timing.finish(); completionTiming.record(timing, false, true, false); return;
                 }
-                Map<String, Double> likely = recogniser == null ? Map.of() : recogniser.nextWords(SentenceContext.words(contextText));
-                result = blockedWords.filter(EnglishSpelling.candidates(typedPredictions.suggest(prefix, personal, day,
-                        word -> blockedWords.entries().isEmpty() || wordAllowed(rendered(word, variant)), likely), variant));
+                // The context model knows only English.
+                Map<String, Double> likely = recogniser == null || !english ? Map.of() : recogniser.nextWords(SentenceContext.words(contextText));
+                String[] suggested = current.predictions.suggest(prefix, personal, day,
+                        word -> blockedWords.entries().isEmpty() || wordAllowed(english ? rendered(word, variant) : word), likely);
+                result = blockedWords.filter(english ? EnglishSpelling.candidates(suggested, variant) : suggested);
                 boolean upper = prefix.length() > 1 && prefix.equals(prefix.toUpperCase(Locale.UK));
                 // A lowercase start of a sentence was typed with Shift, so suggestions keep it.
                 boolean sentenceCase = autoCapitalise && (prefix.isEmpty() || !Character.isLowerCase(prefix.charAt(0))
@@ -283,8 +359,8 @@ public final class SwipeTyping {
 
     /** Whether a typed word is complete, so the next suggestions should follow it instead of correcting it. */
     public boolean knownWord(String word) {
-        TypedPredictions predictions = typedPredictions;
-        if (predictions != null && predictions.contains(word)) return true;
+        Vocabulary current = vocabulary;
+        if (current != null && current.predictions.contains(word)) return true;
         return Arrays.stream(wordView.words).anyMatch(word::equalsIgnoreCase);
     }
 
@@ -444,7 +520,17 @@ public final class SwipeTyping {
         });
     }
 
-    /** Whether the built-in dictionary already has this word, in either spelling. */
+    /** Whether the typing language's dictionary already has this word, in any spelling. */
+    private boolean typedStandard(String word) {
+        Vocabulary current = vocabulary;
+        if (current == null) return true;
+        if (!current.language.english) return current.words.frequency(word) > 0;
+        String letters = SwipeWords.letters(word);
+        return current.words.frequency(letters) > 0
+                || current.words.frequency(EnglishSpelling.convert(letters, EnglishSpelling.Variant.BRITISH)) > 0
+                || current.words.frequency(EnglishSpelling.convert(letters, EnglishSpelling.Variant.AMERICAN)) > 0;
+    }
+    /** Whether the swipe engine's English dictionary already has this word, in either spelling. */
     private boolean standard(String word) {
         String letters = SwipeWords.letters(word);
         return recogniser.frequency(letters) > 0
@@ -459,7 +545,7 @@ public final class SwipeTyping {
     private void syncDictionary() {
         if (recogniser == null || (configuredRevision == dictionary.revision && configuredDay == today())) return;
         List<LanguageHabits.Entry> active = wordsAvailable ? dictionary.active(today()).stream()
-                .filter(entry -> wordAllowed(entry.word)).toList() : java.util.Collections.emptyList();
+                .filter(entry -> wordAllowed(entry.word) && SwipeWords.swipeable(entry.word)).toList() : java.util.Collections.emptyList();
         String[] words = active.stream().map(entry -> entry.word).toArray(String[]::new);
         float[] frequencies = new float[active.size()];
         for (int i = 0; i < frequencies.length; i++) frequencies[i] = active.get(i).frequency(recogniser.frequency(words[i]), today());
@@ -488,8 +574,8 @@ public final class SwipeTyping {
         String word = SwipeWords.normalise(intended);
         if (!learningEnabled || !wordsAvailable || generation != learningGeneration || word.isEmpty()) return;
         worker.execute(() -> {
-            if (!learningEnabled || !wordsAvailable || generation != learningGeneration || recogniser == null) return;
-            if (standard(word) || !wordAllowed(word)) return;
+            if (!learningEnabled || !wordsAvailable || generation != learningGeneration) return;
+            if (typedStandard(word) || !wordAllowed(word)) return;
             long revision = dictionary.revision;
             dictionary.typed(intended, today(), rememberCase);
             lastTyped = revision == dictionary.revision ? null : word;
@@ -510,7 +596,7 @@ public final class SwipeTyping {
             // Only a use that was counted can be taken back.
             if (!word.equals(lastTyped)) return;
             lastTyped = null;
-            if (!learningEnabled || !wordsAvailable || generation != learningGeneration || recogniser == null) return;
+            if (!learningEnabled || !wordsAvailable || generation != learningGeneration) return;
             long revision = dictionary.revision;
             dictionary.untyped(word, today());
             try { saveLearningChanges(revision); }
@@ -597,7 +683,8 @@ public final class SwipeTyping {
         } catch (IOException error) { wordsSaveError = " · Could not save words"; }
     }
 
-    public static String respell(String word) { return SwipeSpelling.respell(word); }
+    /** A typed word in its dictionary spelling: "dont" becomes "don't" and "i" becomes "I". Only English has these. */
+    public String respell(String word) { return english() ? SwipeSpelling.respell(word) : word; }
 
     public static String capitalise(String text, String before) { return SentenceCase.capitalise(text, before); }
 

@@ -33,6 +33,11 @@ interface Editor {
 interface Words {
     class Recognition(val words: List<String>, val token: Any?)
 
+    /** English rules, such as "dont" becoming "don't" and "i" becoming "I", apply only while typing English. */
+    val english: Boolean
+    /** A typed word in its dictionary spelling, such as "don't" for "dont", or the same word. */
+    fun respell(word: String): String
+
     fun recognise(swipe: Swipe, context: String, personalise: Boolean, result: (Recognition) -> Unit)
     fun complete(before: String, cancelled: AtomicBoolean, sentenceCapitalisation: Boolean, result: (List<String>) -> Unit)
     /** [typed] words were typed letter by letter, so the earlier words have not chosen between the look-alikes yet. */
@@ -457,7 +462,7 @@ class Composer(
             && text[0] in ".,!?;:)]}…"
         val before = anchor.before
         // "i." can start "i.e.", so it waits for a space to become "I.".
-        val abbreviating = text[0] == '.' && before?.takeLastWhile { it.isLetter() || it == '\'' || it == '’' } == "i"
+        val abbreviating = text[0] == '.' && words.english && before?.takeLastWhile { it.isLetter() || it == '\'' || it == '’' } == "i"
         val respelled = if (!letterTap && !dropsSpace && !abbreviating && field.fullStops && text[0] in ".,!?;:)]}…") {
             before?.let(::respell)
         } else null
@@ -1089,7 +1094,7 @@ class Composer(
         val before = anchor.before ?: return
         val after = anchor.after ?: return
         // Browsers select the whole address when you tap it, and typing replaces it, so offer starters then too.
-        if (field.starters && before.isEmpty() && after.isEmpty()) {
+        if (field.starters && words.english && before.isEmpty() && after.isEmpty()) {
             val starters = STARTERS.filter(words::allowed)
             composition = Composition.Typed("", false, anchor, starters)
             show(starters)
@@ -1130,7 +1135,7 @@ class Composer(
     private fun respell(before: String): Pair<String, String>? {
         val word = before.takeLastWhile { it.isLetter() || it == '\'' || it == '’' }
         if (word.isEmpty()) return null
-        val spelling = SwipeTyping.respell(word)
+        val spelling = words.respell(word)
         if (spelling == word) return null
         val punctuated = spelling.count { !it.isLetter() } != word.count { !it.isLetter() }
         val cased = spelling.filter { it.isLetter() } != word.filter { it.isLetter() }
@@ -1140,7 +1145,7 @@ class Composer(
 
     /** "i." followed by a space is the word "I", not the start of "i.e.". */
     private fun pronounBeforeFullStop(before: String): Pair<String, String>? {
-        if (!before.endsWith("i.") || !autoCapitalise()) return null
+        if (!words.english || !before.endsWith("i.") || !autoCapitalise()) return null
         val previous = before.getOrNull(before.length - 3)
         if (previous != null && (previous.isLetterOrDigit() || previous in ".'’")) return null
         return "i." to "I."

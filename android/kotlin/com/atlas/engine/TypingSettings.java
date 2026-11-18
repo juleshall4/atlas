@@ -117,6 +117,15 @@ public final class TypingSettings {
                 variant == EnglishSpelling.Variant.AMERICAN ? "american" : "british").apply();
     }
 
+    /** The code of the language that typed suggestions use, such as "en". */
+    public static String language(Context context) {
+        return preferences(context).getString("language", TypingLanguages.ENGLISH.code);
+    }
+
+    public static void language(Context context, String code) {
+        preferences(context).edit().putString("language", TypingLanguages.find(code).code).commit();
+    }
+
     /** The skin tone of emoji that take one. */
     public static EmojiPages.Tone skinTone(Context context) {
         return EmojiPages.Tone.of(preferences(context).getString("skin_tone", EmojiPages.Tone.DEFAULT.id));

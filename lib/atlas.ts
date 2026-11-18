@@ -38,6 +38,10 @@ export type State = {
   liftOffMillis: number;
   haptics: boolean;
   hapticPreset: HapticPreset;
+  /** The code of the language that typed suggestions use, such as `"en"`. */
+  language: string;
+  /** Every language Atlas can type. `installed` languages have been downloaded and added, or come with Atlas. */
+  languages: { code: string; name: string; installed: boolean }[];
   spelling: Spelling;
   /** The skin tone of emoji with hands and people. */
   skinTone: SkinTone;
@@ -70,7 +74,7 @@ export type Shortcut = { letter: string; app: string; name: string };
 /** An app with a launcher icon. `icon` is a picture of it, or null when it cannot be drawn. */
 export type App = { app: string; name: string; icon: string | null };
 
-export type Settings = Pick<State, "learning" | "tapKeys" | "autoCapitalise" | "autoPunctuation" | "suggestionBar" | "cursorControl" | "touchLight" | "swipeTyping" | "liftOff" | "liftOffMillis" | "haptics" | "hapticPreset" | "spelling" | "skinTone" | "appearance" | "openApps" | "shortcutAnimation" | "actions" | "music" | "speakerProfile" | "calls">;
+export type Settings = Pick<State, "learning" | "tapKeys" | "autoCapitalise" | "autoPunctuation" | "suggestionBar" | "cursorControl" | "touchLight" | "swipeTyping" | "liftOff" | "liftOffMillis" | "haptics" | "hapticPreset" | "language" | "spelling" | "skinTone" | "appearance" | "openApps" | "shortcutAnimation" | "actions" | "music" | "speakerProfile" | "calls">;
 
 /** Touchpad points from 0 to 1 across the keyboard and down its four rows. */
 export type Point = [x: number, y: number];
@@ -138,6 +142,18 @@ export async function transferLearning(mode: "import" | "export") {
     return result === "true" ? mode : null;
   } finally {
     if (mode === "import") await state.refresh();
+  }
+}
+
+/** Where the language files can be downloaded. Atlas itself never connects to the internet. */
+export const languagesPage = "https://atlas.julian-hall.com/downloads/languages/";
+
+/** Opens the file picker for a downloaded language. True when a language was added and chosen. */
+export async function addLanguage() {
+  try {
+    return await callNative("atlas", "addLanguage", {}, { timeoutMs: 600_000 }) === "true";
+  } finally {
+    await state.refresh();
   }
 }
 

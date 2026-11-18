@@ -1,13 +1,20 @@
 package com.atlas.engine;
 
+import java.text.Normalizer;
 import java.util.Locale;
+import java.util.regex.Pattern;
 
 final class SwipeWords {
+    private static final Pattern WORD = Pattern.compile("\\p{L}+('\\p{L}+)*");
+
+    /** A word in lowercase with straight apostrophes, in any alphabet, or empty when it is not a word of 2 to 24 letters. */
     static String normalise(String word) {
-        String value = word.toLowerCase(Locale.ROOT).replace('\u2019', '\'');
+        String value = Normalizer.normalize(word, Normalizer.Form.NFC).toLowerCase(Locale.ROOT).replace('\u2019', '\'');
         String letters = value.replace("'", "");
-        return letters.length() >= 2 && letters.length() <= 24 && value.matches("[a-z]+('[a-z]+)*") ? value : "";
+        return letters.length() >= 2 && letters.length() <= 24 && WORD.matcher(value).matches() ? value : "";
     }
+    /** The swipe engine knows only the letters on the keys. */
+    static boolean swipeable(String word) { return word.chars().allMatch(c -> c >= 'a' && c <= 'z' || c == '\''); }
     static String letters(String word) { return normalise(word).replace("'", ""); }
     static boolean valid(float[] x, float[] y, float[] t) {
         if (x.length < 3 || x.length > 4096 || x.length != y.length || x.length != t.length) return false;

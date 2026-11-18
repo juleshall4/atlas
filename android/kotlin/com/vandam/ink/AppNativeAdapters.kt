@@ -27,6 +27,7 @@ import com.atlas.audio.SpeakerService
 import com.atlas.engine.EmojiPages
 import com.atlas.engine.EnglishSpelling
 import com.atlas.engine.SwipeTyping
+import com.atlas.engine.TypingLanguages
 import com.atlas.engine.TypingSettings
 import com.atlas.keyboard.AppShortcuts
 import com.atlas.keyboard.AtlasIme
@@ -174,17 +175,17 @@ private class AtlasAdapter(private val activity: MainActivity) : NativeAdapter, 
                     typing.clearDictionary { error -> operationResult(error, complete) }
                     null
                 }
-                "transferLearning" -> {
+                "transferLearning", "addLanguage" -> {
                     check(!transferring) { "A learning transfer is already open." }
-                    val mode = data.getString("mode")
+                    val mode = if (operation == "addLanguage") "import" else data.getString("mode")
                     require(mode == "import" || mode == "export")
                     transferring = true
                     try {
-                        LearningTransferActivity.start(activity, mode == "export") { transferred, error ->
+                        LearningTransferActivity.start(activity, mode == "export", { transferred, error ->
                             transferring = false
                             if (error == null) complete(NativeResult.Success(transferred.toString()))
                             else operationResult(error, complete)
-                        }
+                        }, language = operation == "addLanguage")
                     } catch (error: Exception) {
                         transferring = false
                         throw error
@@ -337,6 +338,10 @@ private class AtlasAdapter(private val activity: MainActivity) : NativeAdapter, 
             .put("liftOffMillis", TypingSettings.liftOffDurationMillis(activity))
             .put("haptics", Haptics.enabled(activity))
             .put("hapticPreset", Haptics.preset(activity).id)
+            .put("language", typing.language().code)
+            .put("languages", JSONArray(TypingLanguages.ALL.map {
+                JSONObject().put("code", it.code).put("name", it.name).put("installed", TypingLanguages.installed(activity, it))
+            }))
             .put("spelling", if (TypingSettings.spelling(activity) == EnglishSpelling.Variant.AMERICAN) "american" else "british")
             .put("skinTone", TypingSettings.skinTone(activity).id)
             .put("appearance", TypingSettings.appearance(activity))
@@ -421,6 +426,10 @@ private class AtlasAdapter(private val activity: MainActivity) : NativeAdapter, 
             "actions" -> TypingSettings.actions(activity, (value as JSONArray).let { ids -> (0 until ids.length()).map(ids::getString).toSet() })
             "spelling" -> TypingSettings.spelling(activity,
                 if (value == "american") EnglishSpelling.Variant.AMERICAN else EnglishSpelling.Variant.BRITISH)
+            "language" -> {
+                TypingSettings.language(activity, value as String)
+                typing.languageChanged()
+            }
             "skinTone" -> TypingSettings.skinTone(activity, EmojiPages.Tone.of(value as String))
             "appearance" -> TypingSettings.appearance(activity, value as String)
             "music" -> {
