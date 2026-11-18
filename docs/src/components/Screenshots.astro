@@ -1,0 +1,32 @@
+---
+/** A row of app screenshots, each with a thin border. They wrap to two columns on small screens. */
+interface Props {
+	images: { src: string; alt: string }[];
+}
+
+const { images } = Astro.props;
+---
+
+<div class="screenshots not-content">
+	{images.map(({ src, alt }) => <img src={src} alt={alt} width="1076" height="1200" loading="lazy" />)}
+</div>
+
+<style>
+	.screenshots {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 1rem;
+		margin-top: 2.5rem;
+	}
+	img {
+		width: 100%;
+		height: auto;
+		border: 1px solid #2c2c2e;
+	}
+	@media (max-width: 49.99rem) {
+		.screenshots {
+			grid-template-columns: repeat(2, 1fr);
+			gap: 0.75rem;
+		}
+	}
+</style>

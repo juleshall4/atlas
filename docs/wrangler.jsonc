@@ -7,5 +7,9 @@
 		"directory": "./dist",
 		"not_found_handling": "404-page"
 	},
-	"routes": [{ "pattern": "atlas.julian-hall.com", "custom_domain": true }]
+	"routes": [
+		{ "pattern": "apps.julian-hall.com", "custom_domain": true },
+		// The old address serves the same site, and _redirects sends old page links to their new place.
+		{ "pattern": "atlas.julian-hall.com", "custom_domain": true }
+	]
 }

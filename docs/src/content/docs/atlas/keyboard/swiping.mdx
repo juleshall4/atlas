@@ -1,0 +1,42 @@
+---
+title: Swiping
+description: The keys on the Titan 2 Elite are also a touchpad. Slide your finger across a word's letters to type the whole word at once.
+---
+
+import Setting from '../../../../components/Setting.astro';
+
+## Swipe a word
+
+Put your finger on the first letter of the word and slide across the other letters, without pressing the keys. Lift your finger at the last letter, and Atlas types the word.
+
+You do not need to be exact. Atlas picks the word that best fits the shape of your swipe. Swiping works in English only.
+
+## Pick a different word
+
+If Atlas types the wrong word, touch the word you meant on the strip above the keyboard.
+
+## Type one-letter words with a tap
+
+You cannot swipe a word that has only one letter, such as "a" or "I". Tap keys type these letters with a light tap instead of a full press.
+
+To choose them, open **Keyboard**, select **Tap keys** and press each key you want. Tap keys only work while swipe typing is on.
+
+## Keep a swipe going if your finger slips
+
+If your finger leaves the keys for a moment in the middle of a word, put it back down and carry on. Atlas waits briefly before it ends the swipe.
+
+To change how long Atlas waits, open **Keyboard** and select **Continue after a lift**. Choose **Off** to end every swipe as soon as you lift your finger.
+
+<Setting path={['Keyboard']} name="Continue after a lift" value="100 ms" />
+
+## Feel each swipe
+
+Atlas can give a light vibration as your finger moves across the keys. To change it, open **Keyboard** and select **Vibration**. You can choose **Normal**, **Strong** or **Off**, and try each one by swiping on the page.
+
+The short vibration when you move the cursor or pick a word does not change. To turn off all vibration, turn off **Touch feedback** in Android settings.
+
+## Turn off swipe typing
+
+If you only want to press keys, turn off **Swipe typing** in **Keyboard**. Swipes and tap keys stop typing, but you can still [move the cursor](/atlas/keyboard/keys/#move-the-cursor) with the space bar.
+
+<Setting path={['Keyboard']} name="Swipe typing" on />

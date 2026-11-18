@@ -1,0 +1,15 @@
+# The Atlas guide moved under /atlas/ when the site became apps.julian-hall.com.
+# Old links, including the ones in Atlas itself, go to the same page in its new place.
+/whats-new /atlas/whats-new/ 301
+/whats-new/ /atlas/whats-new/ 301
+/keyboard/* /atlas/keyboard/:splat 301
+/audio/* /atlas/audio/:splat 301
+/help/* /atlas/help/:splat 301
+
+# Only the download pages move. The files in /downloads/languages/ stay where they are.
+/downloads /atlas/downloads/ 301
+/downloads/ /atlas/downloads/ 301
+/downloads/languages /atlas/downloads/languages/ 301
+/downloads/languages/ /atlas/downloads/languages/ 301
+/downloads/speech /atlas/downloads/speech/ 301
+/downloads/speech/ /atlas/downloads/speech/ 301

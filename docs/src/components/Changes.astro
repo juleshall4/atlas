@@ -1,0 +1,110 @@
+---
+/**
+ * One group of changes in a Release, with its label down the left.
+ * In New, each item starts with the feature name in bold, which lines up in its own column.
+ * Example: <Changes type="new">- **Quick open** Hold Fn and press a letter.</Changes>
+ */
+interface Props {
+	type: 'new' | 'changed' | 'fixed';
+}
+
+const { type } = Astro.props;
+const label = { new: 'New', changed: 'Changed', fixed: 'Fixed' }[type];
+---
+
+<div class:list={['changes', type]}>
+	<h3><span class="tag">{label}</span></h3>
+	<div class="items"><slot /></div>
+</div>
+
+<style>
+	.changes {
+		display: flex;
+		gap: 1.5rem;
+		padding: 1.5rem 2rem;
+		border-top: 1px solid var(--sl-color-gray-6);
+	}
+	h3 {
+		display: flex;
+		align-items: flex-start;
+		width: 5.5rem;
+		flex-shrink: 0;
+		margin: 0;
+		padding-top: 0.125rem;
+	}
+	.tag {
+		padding: 0.1875rem 0.625rem;
+		font-size: 0.8125rem;
+		font-weight: 600;
+		line-height: 1.125rem;
+	}
+	.new .tag {
+		background: #0f2a1a;
+		color: #4cd27a;
+	}
+	.changed .tag {
+		background: #0d2238;
+		color: #5aa9ff;
+	}
+	.fixed .tag {
+		background: #2e2410;
+		color: #f2b84b;
+	}
+	.items {
+		flex: 1;
+		min-width: 0;
+	}
+	.items :global(ul) {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.items :global(li) {
+		margin: 0;
+		color: var(--sl-color-text);
+		line-height: 1.5rem;
+	}
+	.items :global(strong) {
+		color: #ffffff;
+		font-weight: 600;
+	}
+	.items :global(a) {
+		color: #ffffff;
+		text-decoration-color: var(--sl-color-gray-4);
+	}
+	.items :global(a:hover) {
+		text-decoration-color: #ffffff;
+	}
+	/* The feature names in New get their own column. */
+	.new .items :global(li) {
+		position: relative;
+		padding-left: 9.25rem;
+	}
+	.new .items :global(li > strong:first-child) {
+		position: absolute;
+		left: 0;
+		width: 8.25rem;
+	}
+
+	@media (max-width: 49.99rem) {
+		.changes {
+			flex-direction: column;
+			gap: 1rem;
+			padding: 1.25rem;
+		}
+		h3 {
+			width: auto;
+		}
+		.new .items :global(li) {
+			padding-left: 0;
+		}
+		.new .items :global(li > strong:first-child) {
+			position: static;
+			display: block;
+			width: auto;
+		}
+	}
+</style>

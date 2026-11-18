@@ -1,0 +1,218 @@
+---
+import { apps, email, releases } from '../apps';
+---
+
+<div class="home not-content">
+	<section aria-labelledby="apps">
+		<h2 id="apps" class="label">Apps</h2>
+		<ul class="apps">
+			{
+				apps.map((app) => (
+					<li>
+						<a href={`/${app.id}/`}>
+							<img src={app.icon} alt="" width="44" height="44" />
+							<span class="text">
+								<span class="name">{app.name}</span>
+								<span class="description">{app.description}</span>
+							</span>
+							<span class="version">{app.version}</span>
+							<svg class="chevron" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+								<path
+									d="M6 3l5 5-5 5"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="1.6"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+								/>
+							</svg>
+						</a>
+					</li>
+				))
+			}
+		</ul>
+	</section>
+
+	<section aria-labelledby="whats-new" data-pagefind-ignore>
+		<h2 id="whats-new" class="label">What's new</h2>
+		<ul class="releases">
+			{
+				releases.map((release) => (
+					<li>
+						<a href={release.href}>
+							<span class="date">{release.date}</span>
+							<span class="release">
+								{release.app} {release.version}
+							</span>
+							<span class="note">{release.note}</span>
+						</a>
+					</li>
+				))
+			}
+		</ul>
+	</section>
+
+	<p class="feedback">
+		Found a problem or have an idea? <a href={`mailto:${email}`}>Email me</a> or open an issue on GitHub for{' '}
+		{
+			apps.map((app, i) => (
+				<>
+					{i > 0 && (i === apps.length - 1 ? ' or ' : ', ')}
+					<a href={`${app.github}/issues`}>{app.name}</a>
+				</>
+			))
+		}.
+	</p>
+</div>
+
+<style>
+	.home {
+		display: flex;
+		flex-direction: column;
+		gap: 3.5rem;
+		max-width: 47.5rem;
+		margin: 0 auto;
+		/* The content panel already has space at the top. */
+		padding: 0 0 6rem;
+	}
+	ul {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	/* Section labels, like the sidebar's group labels */
+	.label {
+		margin: 0;
+		padding-bottom: 0.75rem;
+		border-bottom: 1px solid var(--sl-color-hairline);
+		color: var(--sl-color-gray-2);
+		font-size: 0.8125rem;
+		font-weight: 500;
+		letter-spacing: 0.06em;
+		line-height: 1.25rem;
+		text-transform: uppercase;
+	}
+	li {
+		border-bottom: 1px solid var(--sl-color-hairline);
+	}
+	a {
+		color: inherit;
+		text-decoration: none;
+	}
+
+	/* Apps: icon, name over description, version and a chevron */
+	.apps a {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		padding: 1.125rem 0;
+	}
+	.apps img {
+		flex-shrink: 0;
+		width: 2.75rem;
+		height: 2.75rem;
+		border: 1px solid #2c2c2e;
+		border-radius: 0.6875rem;
+	}
+	.apps .text {
+		display: flex;
+		flex-direction: column;
+		gap: 0.125rem;
+		flex: 1;
+		min-width: 0;
+	}
+	.apps .name {
+		color: #ffffff;
+		font-size: 1.0625rem;
+		font-weight: 600;
+		line-height: 1.5rem;
+	}
+	.apps .description {
+		color: var(--sl-color-gray-2);
+		font-size: 0.9375rem;
+		line-height: 1.375rem;
+	}
+	.apps .version {
+		flex-shrink: 0;
+		color: var(--sl-color-gray-2);
+		font-size: 0.875rem;
+		font-variant-numeric: tabular-nums;
+		line-height: 1.25rem;
+	}
+	.apps .chevron {
+		flex-shrink: 0;
+		color: #5a5a5e;
+	}
+	.apps a:hover .chevron {
+		color: #ffffff;
+	}
+
+	/* What's new: date, app and version, and a note cut to one line */
+	.releases a {
+		display: flex;
+		align-items: baseline;
+		gap: 1rem;
+		padding: 0.875rem 0;
+		font-size: 0.9375rem;
+		line-height: 1.375rem;
+	}
+	.releases .date {
+		flex-shrink: 0;
+		width: 6rem;
+		color: var(--sl-color-gray-2);
+		font-size: 0.875rem;
+	}
+	.releases .release {
+		flex-shrink: 0;
+		width: 7rem;
+		color: #ffffff;
+		font-weight: 500;
+	}
+	.releases .note {
+		flex: 1;
+		min-width: 0;
+		overflow: hidden;
+		color: var(--sl-color-gray-2);
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.releases a:hover .note {
+		color: #c7c7cc;
+	}
+
+	.feedback {
+		margin: 0;
+		color: var(--sl-color-gray-2);
+		font-size: 0.9375rem;
+		line-height: 1.375rem;
+	}
+	.feedback a {
+		color: #ffffff;
+		text-decoration: underline;
+		text-decoration-color: #5a5a5e;
+		text-underline-offset: 0.2em;
+	}
+	.feedback a:hover {
+		text-decoration-color: #ffffff;
+	}
+
+	/* Small screens: the date and release share a line, with the note under them */
+	@media (max-width: 49.99rem) {
+		.home {
+			gap: 2.5rem;
+		}
+		.releases a {
+			flex-wrap: wrap;
+			row-gap: 0.125rem;
+		}
+		.releases .date {
+			width: auto;
+		}
+		.releases .release {
+			width: auto;
+		}
+		.releases .note {
+			flex-basis: 100%;
+		}
+	}
+</style>

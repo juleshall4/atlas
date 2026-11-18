@@ -4,17 +4,33 @@ const PAGE_TITLE_ID = '_top';
 const { entry, sidebar } = Astro.locals.starlightRoute;
 
 // The sidebar group that holds this page, such as "Keyboard", shows above the title.
+// The top-level groups are the apps, so look one level down.
 type Item = (typeof sidebar)[number];
 const holds = (item: Item): boolean =>
 	item.type === 'link' ? item.isCurrent : item.entries.some(holds);
-const group = sidebar.find((item) => item.type === 'group' && holds(item))?.label;
+const appGroup = sidebar.find((item) => item.type === 'group' && holds(item));
+const group =
+	appGroup?.type === 'group'
+		? appGroup.entries.find((item) => item.type === 'group' && holds(item))?.label
+		: undefined;
+
+// The home page lists the apps straight away, so its title is only for screen readers.
+const home = entry.data.template === 'splash';
 ---
 
-<div class="page-title">
-	{group && <p class="group">{group}</p>}
-	<h1 id={PAGE_TITLE_ID}>{entry.data.title}</h1>
-	{entry.data.description && <p class="lede">{entry.data.description}</p>}
-</div>
+{
+	home ? (
+		<h1 id={PAGE_TITLE_ID} class="sr-only">
+			{entry.data.title}
+		</h1>
+	) : (
+		<div class="page-title">
+			{group && <p class="group">{group}</p>}
+			<h1 id={PAGE_TITLE_ID}>{entry.data.title}</h1>
+			{entry.data.description && <p class="lede">{entry.data.description}</p>}
+		</div>
+	)
+}
 
 <style>
 	.page-title {

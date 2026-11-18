@@ -2,6 +2,12 @@
  * The Atlas theme: the same black, white and greys as the app, with Inter.
  * Atlas has one theme, so light mode uses the same colours.
  */
+
+/* Keep space for the scrollbar on every page, so pages that scroll and pages that do not line up. */
+html {
+	scrollbar-gutter: stable;
+}
+
 :root,
 :root[data-theme='light'] {
 	color-scheme: dark;
@@ -61,6 +67,14 @@
 		--sl-content-pad-x: 2rem;
 		--sl-content-width: 47.5rem;
 	}
+}
+
+/* Square corners everywhere, including Starlight's own parts. The settings switch and the app icons
+ * keep their shape, because they show what Atlas looks like. */
+*:not(.setting .switch, .setting .switch span, .home .apps img),
+::before,
+::after {
+	border-radius: 0 !important;
 }
 
 body {
@@ -124,9 +138,10 @@ site-search button[data-open-modal] svg {
 	padding-top: 0;
 }
 
-/* The article sits in the middle of the space next to the sidebar */
+/* The article sits in the middle of the space next to the sidebar. Pages without "On this page",
+ * such as What's new, keep the same space on the right, so the article lines up with the others. */
 @media (min-width: 72rem) {
-	[data-has-sidebar][data-has-toc] .main-pane {
+	[data-has-sidebar] .main-pane {
 		width: calc(100% - var(--sl-sidebar-width));
 	}
 	.right-sidebar-container {
@@ -158,19 +173,19 @@ site-search button[data-open-modal] svg {
 	font-size: 1.0625rem;
 	line-height: 1.75rem;
 }
-.sl-markdown-content :is(h2, h3) {
+.sl-markdown-content :is(h2, h3):not(.not-content *) {
 	color: #ffffff;
 	font-weight: 600;
 	letter-spacing: -0.02em;
 	line-height: 1.25;
 }
-.sl-markdown-content h2 {
+.sl-markdown-content h2:not(.not-content *) {
 	margin-top: 3rem;
 }
 .sl-markdown-content > h2:first-child {
 	margin-top: 1rem;
 }
-.sl-markdown-content :is(h2, h3) + * {
+.sl-markdown-content :is(h2, h3):not(.not-content *) + * {
 	margin-top: 1rem;
 }
 .sl-markdown-content a {
@@ -193,7 +208,7 @@ site-search button[data-open-modal] svg {
 		font-size: 1rem;
 		line-height: 1.625rem;
 	}
-	.sl-markdown-content h2 {
+	.sl-markdown-content h2:not(.not-content *) {
 		margin-top: 2.75rem;
 	}
 	.sl-markdown-content > h2:first-child {
@@ -263,7 +278,6 @@ mobile-starlight-toc .toggle {
 	flex: 1;
 	padding: 0.625rem 0.75rem 0.625rem 1rem;
 	border-color: #2c2c2e;
-	border-radius: 0.75rem;
 	color: #ffffff;
 	font-size: 0.9375rem;
 	font-weight: 500;
@@ -296,7 +310,6 @@ footer .meta:not(:has(*)) {
 .pagination-links a {
 	padding: 1.25rem 1.5rem;
 	border-color: #2c2c2e;
-	border-radius: 0.75rem;
 	box-shadow: none;
 	color: var(--sl-color-gray-2);
 	font-size: 0.875rem;
@@ -373,7 +386,6 @@ site-search .dialog-frame {
 @media (min-width: 50rem) {
 	site-search dialog {
 		margin-top: 6rem;
-		border-radius: 1rem;
 		max-width: 38rem;
 		min-height: 0;
 		max-height: calc(100% - 12rem);
@@ -384,7 +396,7 @@ site-search .dialog-frame {
 }
 #starlight__search {
 	--pagefind-ui-scale: 1;
-	--pagefind-ui-border-radius: 0.625rem;
+	--pagefind-ui-border-radius: 0;
 	--sl-search-cancel-space: 5.5rem;
 }
 @media (min-width: 50rem) {
@@ -426,7 +438,6 @@ site-search .dialog-frame {
 	right: calc(var(--sl-search-cancel-space) + 0.75rem);
 	width: 2rem;
 	height: 2rem;
-	border-radius: 0.5rem;
 	font-size: 0;
 }
 #starlight__search .pagefind-ui__search-clear::before {
@@ -478,7 +489,6 @@ site-search button[data-close-modal] {
 #starlight__search .pagefind-ui__result-title:not(:where(.pagefind-ui__result-nested *)),
 #starlight__search .pagefind-ui__result-nested {
 	padding: 0.625rem 0.75rem;
-	border-radius: 0.625rem;
 	background: transparent;
 	outline: none !important;
 }
@@ -527,7 +537,6 @@ site-search button[data-close-modal] {
 	height: 2.75rem;
 	margin-top: 0.75rem;
 	border: 1px solid #2c2c2e;
-	border-radius: 0.625rem;
 	background: transparent;
 	color: #c7c7cc;
 	font-size: 0.9375rem;

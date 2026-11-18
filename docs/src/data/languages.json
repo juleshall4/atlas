@@ -1,0 +1,146 @@
+[
+  {
+    "name": "Croatian",
+    "file": "atlas-hr-1.atlas",
+    "size": "0.9 MB",
+    "source": "AOSP",
+    "licence": "Apache 2.0",
+    "licenceLink": "https://www.apache.org/licenses/LICENSE-2.0"
+  },
+  {
+    "name": "Czech",
+    "file": "atlas-cs-1.atlas",
+    "size": "0.9 MB",
+    "source": "AOSP",
+    "licence": "Apache 2.0",
+    "licenceLink": "https://www.apache.org/licenses/LICENSE-2.0"
+  },
+  {
+    "name": "Danish",
+    "file": "atlas-da-1.atlas",
+    "size": "1.0 MB",
+    "source": "AOSP",
+    "licence": "Apache 2.0",
+    "licenceLink": "https://www.apache.org/licenses/LICENSE-2.0"
+  },
+  {
+    "name": "Dutch",
+    "file": "atlas-nl-1.atlas",
+    "size": "1.0 MB",
+    "source": "AOSP",
+    "licence": "Apache 2.0",
+    "licenceLink": "https://www.apache.org/licenses/LICENSE-2.0"
+  },
+  {
+    "name": "Finnish",
+    "file": "atlas-fi-1.atlas",
+    "size": "1.2 MB",
+    "source": "AOSP",
+    "licence": "Apache 2.0",
+    "licenceLink": "https://www.apache.org/licenses/LICENSE-2.0"
+  },
+  {
+    "name": "French",
+    "file": "atlas-fr-1.atlas",
+    "size": "1.0 MB",
+    "source": "AOSP",
+    "licence": "Apache 2.0",
+    "licenceLink": "https://www.apache.org/licenses/LICENSE-2.0"
+  },
+  {
+    "name": "German",
+    "file": "atlas-de-1.atlas",
+    "size": "1.7 MB",
+    "source": "Leipzig Corpora",
+    "licence": "CC BY 4.0",
+    "licenceLink": "https://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+    "name": "Hinglish",
+    "file": "atlas-hi-latn-1.atlas",
+    "size": "1.1 MB",
+    "source": "HeliBoard community",
+    "licence": null,
+    "licenceLink": null
+  },
+  {
+    "name": "Hungarian",
+    "file": "atlas-hu-1.atlas",
+    "size": "0.4 MB",
+    "source": "AOSP",
+    "licence": "Apache 2.0",
+    "licenceLink": "https://www.apache.org/licenses/LICENSE-2.0"
+  },
+  {
+    "name": "Italian",
+    "file": "atlas-it-1.atlas",
+    "size": "0.9 MB",
+    "source": "AOSP",
+    "licence": "Apache 2.0",
+    "licenceLink": "https://www.apache.org/licenses/LICENSE-2.0"
+  },
+  {
+    "name": "Norwegian",
+    "file": "atlas-nb-1.atlas",
+    "size": "0.9 MB",
+    "source": "AOSP",
+    "licence": "Apache 2.0",
+    "licenceLink": "https://www.apache.org/licenses/LICENSE-2.0"
+  },
+  {
+    "name": "Polish",
+    "file": "atlas-pl-1.atlas",
+    "size": "1.0 MB",
+    "source": "AOSP",
+    "licence": "Apache 2.0",
+    "licenceLink": "https://www.apache.org/licenses/LICENSE-2.0"
+  },
+  {
+    "name": "Portuguese (Brazil)",
+    "file": "atlas-pt-br-1.atlas",
+    "size": "0.8 MB",
+    "source": "AOSP",
+    "licence": "Apache 2.0",
+    "licenceLink": "https://www.apache.org/licenses/LICENSE-2.0"
+  },
+  {
+    "name": "Portuguese (Portugal)",
+    "file": "atlas-pt-pt-1.atlas",
+    "size": "1.0 MB",
+    "source": "AOSP",
+    "licence": "Apache 2.0",
+    "licenceLink": "https://www.apache.org/licenses/LICENSE-2.0"
+  },
+  {
+    "name": "Romanian",
+    "file": "atlas-ro-1.atlas",
+    "size": "0.9 MB",
+    "source": "AOSP",
+    "licence": "Apache 2.0",
+    "licenceLink": "https://www.apache.org/licenses/LICENSE-2.0"
+  },
+  {
+    "name": "Spanish",
+    "file": "atlas-es-1.atlas",
+    "size": "1.1 MB",
+    "source": "AOSP",
+    "licence": "Apache 2.0",
+    "licenceLink": "https://www.apache.org/licenses/LICENSE-2.0"
+  },
+  {
+    "name": "Swedish",
+    "file": "atlas-sv-1.atlas",
+    "size": "1.1 MB",
+    "source": "AOSP",
+    "licence": "Apache 2.0",
+    "licenceLink": "https://www.apache.org/licenses/LICENSE-2.0"
+  },
+  {
+    "name": "Turkish",
+    "file": "atlas-tr-1.atlas",
+    "size": "0.9 MB",
+    "source": "AOSP",
+    "licence": "Apache 2.0",
+    "licenceLink": "https://www.apache.org/licenses/LICENSE-2.0"
+  }
+]

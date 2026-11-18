@@ -1,14 +1,20 @@
 ---
 import MobileMenuFooter from 'virtual:starlight/components/MobileMenuFooter';
+import { appFor } from '../apps';
 
 // Groups have a plain label, not a button: they never open or close.
 const { sidebar } = Astro.locals.starlightRoute;
 type Entry = (typeof sidebar)[number];
 type Link = Extract<Entry, { type: 'link' }>;
 
+// The config has one group for each app. Show only the pages of the app you're in.
+const app = appFor(Astro.url.pathname);
+const appGroup = sidebar.find((entry) => entry.type === 'group' && entry.label === app?.name);
+const entries = appGroup?.type === 'group' ? appGroup.entries : [];
+
 // Pages without a group, such as Get started, form one block at the top.
 const blocks: { label?: string; links: Link[] }[] = [];
-for (const entry of sidebar) {
+for (const entry of entries) {
 	if (entry.type === 'group') {
 		blocks.push({ label: entry.label, links: entry.entries.filter((e): e is Link => e.type === 'link') });
 	} else if (blocks.at(-1)?.label === undefined && blocks.length) {
@@ -19,7 +25,7 @@ for (const entry of sidebar) {
 }
 ---
 
-<nav class="atlas-sidebar" aria-label="Guide">
+<nav class="atlas-sidebar" aria-label={app ? `${app.name} guide` : 'Guide'}>
 	{
 		blocks.map((block) => (
 			<div class="block">
