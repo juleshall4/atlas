@@ -84,19 +84,19 @@ class Dictation(private val context: Context, private val listener: Listener) {
         } catch (error: RuntimeException) {
             Log.w("Atlas", "Could not open the microphone", error)
             listening = false
-            return post { listener.failed("Could not use the microphone.") }
+            return post { listener.failed(NO_MICROPHONE) }
         }
         val audio = FloatArrayBuilder()
         val endpoint = Endpoint(FRAME_MILLIS)
         try {
-            if (record.state != AudioRecord.STATE_INITIALIZED) return post { listener.failed("Could not use the microphone.") }
+            if (record.state != AudioRecord.STATE_INITIALIZED) return post { listener.failed(NO_MICROPHONE) }
             record.startRecording()
             val buffer = ShortArray(frame)
             while (!stopping) {
                 var filled = 0
                 while (filled < frame && !stopping) {
                     val count = record.read(buffer, filled, frame - filled)
-                    if (count < 0) return post { listener.failed("Could not use the microphone.") }
+                    if (count < 0) return post { listener.failed(NO_MICROPHONE) }
                     filled += count
                 }
                 var sum = 0.0
@@ -115,7 +115,7 @@ class Dictation(private val context: Context, private val listener: Listener) {
             }
         } catch (error: RuntimeException) {
             Log.w("Atlas", "Could not record speech", error)
-            return post { listener.failed("Could not use the microphone.") }
+            return post { listener.failed(NO_MICROPHONE) }
         } finally {
             listening = false
             try { record.stop() } catch (_: IllegalStateException) {}
@@ -205,6 +205,7 @@ class Dictation(private val context: Context, private val listener: Listener) {
     companion object {
         const val SAMPLE_RATE = 16_000
         const val FRAME_MILLIS = 50
+        private const val NO_MICROPHONE = "Could not use the microphone."
         private const val THREADS = 4
         private const val KEEP_MILLIS = 5 * 60_000L
     }
