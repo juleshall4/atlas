@@ -27,8 +27,8 @@ import android.view.inputmethod.CursorAnchorInfo
 import android.view.inputmethod.ExtractedTextRequest
 import android.view.inputmethod.InputConnection
 import android.view.inputmethod.InputMethodManager
-import android.widget.Toast
 import android.view.inputmethod.SurroundingText
+import android.widget.Toast
 import com.atlas.engine.Calibration
 import com.atlas.engine.EmojiPages
 import com.atlas.engine.EmojiSearch
