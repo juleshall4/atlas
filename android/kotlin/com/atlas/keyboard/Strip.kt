@@ -160,6 +160,7 @@ class Strip(
     private fun render() {
         val dark = TypingSettings.dark(context)
         val ink = if (dark) Color.WHITE else Color.BLACK
+        val browsing = !dictating
         val visible = showSuggestions || showPages || dictating
         val background = if (dark) Color.BLACK else Color.WHITE
         setBackgroundColor(if (visible) background else Color.TRANSPARENT)
@@ -173,7 +174,7 @@ class Strip(
         waveform.colour(ink)
         for ((slot, view) in wordViews.withIndex()) {
             val index = WORD_ORDER[slot]
-            view.visibility = if (!dictating && showSuggestions && !showPages) VISIBLE else GONE
+            view.visibility = if (browsing && showSuggestions && !showPages) VISIBLE else GONE
             view.text = words.getOrElse(index) { "" }
             view.isEnabled = index < words.size
             view.setTextColor(ink)
@@ -182,16 +183,16 @@ class Strip(
         val query = if (showEmoji) emoji?.query().orEmpty() else ""
         val searching = query.isNotEmpty()
         val found = emoji?.results() ?: 0
-        queryView.visibility = if (!dictating && searching) VISIBLE else GONE
+        queryView.visibility = if (browsing && searching) VISIBLE else GONE
         queryView.text = SpannableString("$query|").apply {
             setSpan(ForegroundColorSpan(MUTED), query.length, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
         queryView.setTextColor(ink)
-        emptyView.visibility = if (!dictating && searching && found == 0) VISIBLE else GONE
+        emptyView.visibility = if (browsing && searching && found == 0) VISIBLE else GONE
         for ((slot, view) in symbolViews.withIndex()) {
             val value = if (showEmoji) emojiPage.getOrNull(slot) else symbols.getOrNull(page * SYMBOLS_PER_PAGE + slot)
             view.visibility = when {
-                dictating || !showPages || searching && (found == 0 || slot >= EmojiPages.RESULTS_PER_PAGE) -> GONE
+                !browsing || !showPages || searching && (found == 0 || slot >= EmojiPages.RESULTS_PER_PAGE) -> GONE
                 value == null -> INVISIBLE
                 else -> VISIBLE
             }
