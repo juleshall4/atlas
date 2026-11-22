@@ -16,6 +16,7 @@ restore() {
   for file in "${files[@]}"; do cp "$backup/$file" "$file"; done
   rm -f android/src/main/res/values/atlas_debug.xml
   rmdir android/src/main/res/values 2>/dev/null || true
+  rm -rf android/kotlin/com/atlas/debug
   rm -rf "$backup"
 }
 trap restore EXIT
@@ -29,6 +30,12 @@ cp android/debug/ic_launcher.xml android/src/main/res/mipmap-anydpi-v26/ic_launc
 cp android/debug/ic_launcher.xml android/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
 mkdir -p android/src/main/res/values
 cp android/debug/colors.xml android/src/main/res/values/atlas_debug.xml
+
+# Debug-only code, kept out of android/kotlin so release builds never compile it.
+# Android starts the battery log provider with the app, so no Atlas code calls it.
+mkdir -p android/kotlin/com/atlas/debug
+cp android/debug/kotlin/*.kt android/kotlin/com/atlas/debug/
+edit android/src/main/AndroidManifest.xml 's|</application>|<provider android:name="com.atlas.debug.BatteryLog" android:authorities="com.atlas.debug.batterylog" android:exported="false" /></application>|'
 
 # Contributors have no release key, so sign with a test key. It is kept outside the checkout,
 # so every clone and worktree signs the same way and can update the installed app.

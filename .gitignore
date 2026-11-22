@@ -24,3 +24,5 @@ local.properties
 /assets/vibration.png
 
 CLAUDE.local.md
+# Debug-only code that tools/debug.sh copies in for its build.
+/android/kotlin/com/atlas/debug/
