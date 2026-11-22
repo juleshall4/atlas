@@ -31,6 +31,7 @@ import com.atlas.engine.TypingSettings
 import com.atlas.keyboard.AppShortcuts
 import com.atlas.keyboard.AtlasIme
 import com.atlas.keyboard.BackService
+import com.atlas.keyboard.Details
 import com.atlas.keyboard.HapticPreset
 import com.atlas.keyboard.Haptics
 import com.atlas.keyboard.KeyCapture
@@ -169,6 +170,12 @@ private class AtlasAdapter(private val activity: MainActivity) : NativeAdapter, 
                 "blockWord", "unblockWord" -> {
                     typing.setWordBlocked(data.getString("word"), operation == "blockWord") { error -> operationResult(error, complete) }
                     null
+                }
+                "details" -> {
+                    val emails = data.getJSONArray("emails")
+                    Details.save(activity, Details.Saved(data.getString("firstName"), data.getString("lastName"),
+                        List(emails.length(), emails::getString), data.getString("phone")))
+                    "null"
                 }
                 "clearWords" -> {
                     typing.clearDictionary { error -> operationResult(error, complete) }
@@ -311,6 +318,7 @@ private class AtlasAdapter(private val activity: MainActivity) : NativeAdapter, 
         val shortcuts = JSONArray()
         for ((letter, app) in AppShortcuts.shortcuts(activity))
             shortcuts.put(JSONObject().put("letter", letter.toString()).put("app", app).put("name", AppShortcuts.name(activity, app)))
+        val details = Details.saved(activity)
         val learned = typing.learnedWords()
         val words = JSONArray()
         for ((index, word) in learned.words.withIndex())
@@ -343,6 +351,8 @@ private class AtlasAdapter(private val activity: MainActivity) : NativeAdapter, 
             .put("dark", TypingSettings.dark(activity))
             .put("words", words)
             .put("blockedWords", JSONArray(typing.blockedWords().toList()))
+            .put("details", JSONObject().put("firstName", details.firstName).put("lastName", details.lastName)
+                .put("emails", JSONArray(details.emails)).put("phone", details.phone))
             .put("openApps", AppShortcuts.enabled(activity))
             .put("shortcutAnimation", AppShortcuts.animation(activity))
             .put("actions", JSONArray(TypingSettings.actions(activity).toList()))

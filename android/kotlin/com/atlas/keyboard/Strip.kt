@@ -27,7 +27,7 @@ class Strip(
 ) : LinearLayout(context) {
     private val typeface = resources.getFont(R.font.inter_regular)
     private val symbols = Keys.extraSymbols()
-    private val wordViews = WORD_ORDER.map { index -> item(17f) { choose(index) } }
+    private val wordViews = List(WORD_ORDER.size) { slot -> item(17f) { choose(wordAt(slot)) } }
     private val symbolViews = List(SYMBOLS_PER_PAGE) { item(20f) { view ->
         if (showEmoji) pickEmoji(view.text.toString()) else symbol(view.text.toString())
     } }
@@ -56,6 +56,17 @@ class Strip(
 
     var words: List<String> = emptyList()
         set(value) {
+            field = value
+            render()
+        }
+
+    /**
+     * The words are from Your details. One or two share the whole width, from the left, so less is cut off.
+     * Three sit like word suggestions.
+     */
+    var details = false
+        set(value) {
+            if (field == value) return
             field = value
             render()
         }
@@ -147,8 +158,8 @@ class Strip(
         // Keep a window for firmware touchpad routing when there is nothing to display.
         minimumHeight = if (visible) 0 else 1
         for ((slot, view) in wordViews.withIndex()) {
-            val index = WORD_ORDER[slot]
-            view.visibility = if (showSuggestions && !showPages) VISIBLE else GONE
+            val index = wordAt(slot)
+            view.visibility = if (!showSuggestions || showPages || details && index >= words.size) GONE else VISIBLE
             view.text = words.getOrElse(index) { "" }
             view.isEnabled = index < words.size
             view.setTextColor(ink)
@@ -186,6 +197,9 @@ class Strip(
         super.onConfigurationChanged(configuration)
         render()
     }
+
+    /** Which word a slot shows. */
+    private fun wordAt(slot: Int) = if (details && words.size < WORD_ORDER.size) slot else WORD_ORDER[slot]
 
     private fun dp(value: Int) = Math.round(value * resources.displayMetrics.density)
 

@@ -55,6 +55,8 @@ class Composer(
     private val externalChange: () -> Unit,
     private val autoCapitalise: () -> Boolean,
     private val autoPunctuation: () -> Boolean,
+    /** The saved values for a detail, such as your email addresses. */
+    private val details: (Details.Kind) -> List<String>,
     private val show: (List<String>) -> Unit,
 ) {
     private data class Selection(val start: Int, val end: Int)
@@ -90,6 +92,9 @@ class Composer(
 
         class Typed(val prefix: String, val trailingSpace: Boolean, val snapshot: Snapshot,
                     override val alternatives: List<String>) : Composition
+
+        /** Values from Your details that finish the field's text, which ends at the cursor. */
+        class Detail(val snapshot: Snapshot, override val alternatives: List<String>) : Composition
 
         /** The cursor is in an earlier swiped word, [before] and [after] letters from its ends. */
         data class Recalled(val word: Remembered, val before: Int, val after: Int, val snapshot: Snapshot) : Composition {
@@ -154,6 +159,8 @@ class Composer(
 
     val hasPendingInput get() = recognising || barrier != null || drainScheduled || pendingInput.isNotEmpty()
     val awaitingDestination get() = barrier?.navigation == true
+    /** The strip shows values from Your details, not words. */
+    val showingDetails get() = composition is Composition.Detail
 
     fun start(field: Field, selectionStart: Int, selectionEnd: Int) {
         val next = editor.identity()
@@ -250,6 +257,7 @@ class Composer(
         val anchor = recognitionSnapshot ?: when (val current = composition) {
             is Composition.Swiped -> current.snapshot
             is Composition.Typed -> current.snapshot
+            is Composition.Detail -> current.snapshot
             is Composition.Recalled -> current.snapshot
             Composition.None -> completionSnapshot ?: automaticSpace ?: fullStop?.snapshot ?: editSnapshot
         }
@@ -731,7 +739,7 @@ class Composer(
 
     fun choose(index: Int) {
         val chosen = composition.alternatives.getOrNull(index) ?: return
-        if (!words.allowed(chosen)) return
+        if (composition !is Composition.Detail && !words.allowed(chosen)) return
         val offered = composition
         if (defer {
             val current = composition
@@ -787,6 +795,15 @@ class Composer(
                     if (confirmed && field.learning && chosen != current.word.word)
                         words.chosen(word.swipe, word.context, word.recognition, chosen)
                 }
+            }
+            is Composition.Detail -> {
+                if (anchor != current.snapshot || anchor.selected) return
+                invalidate(false)
+                // The value replaces what you typed of it, with its own capitals.
+                if (!edit(before.length, chosen)) return
+                composition = Composition.None
+                manualWord.clear()
+                confirmState(snapshot(), predictNow = true)
             }
             Composition.None -> Unit
         }
@@ -1099,6 +1116,15 @@ class Composer(
         applySwap()
         if (snapshot() != anchor) return
         checkLookAlike()
+        field.detail?.let { detail ->
+            val matches = if (after.isEmpty()) Details.matches(details(detail), before) else emptyList()
+            // A name field that matches nothing still gets word suggestions.
+            if (matches.isNotEmpty() || !field.suggestions) {
+                composition = Composition.Detail(anchor, matches)
+                show(matches)
+                return
+            }
+        }
         if (!field.suggestions) {
             show(emptyList())
             return

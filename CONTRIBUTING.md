@@ -100,6 +100,7 @@ bash tools/setup-native.sh
    | Words and suggestions | `bash tests/words/run.sh` |
    | Emoji | `bash tests/emoji/run.sh` |
    | App shortcuts | `bash tests/shortcuts/run.sh` |
+   | Your details | `bash tests/details/run.sh` |
    | Swipe recognition | `bash tests/swipe/run.sh` |
    | Swipe preview | `bash tests/preview/run.sh` |
    | Keyboard show and hide | `APP=com.atlas.debug python3 tests/ime-window/run.py <app package>` |
