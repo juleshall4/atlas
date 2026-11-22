@@ -9,6 +9,10 @@ import { tapKeysLabel } from "./tap-keys";
 import { vibrationLabel } from "./vibration";
 
 const wordsLabel = ({ words }: State) => words.length === 1 ? "1 word" : `${words.length} words`;
+const detailsLabel = ({ details: { firstName, lastName, emails, phone } }: State) => {
+  const saved = [firstName, lastName, phone].filter(Boolean).length + emails.length;
+  return saved === 0 ? "None" : saved === 1 ? "1 saved" : `${saved} saved`;
+};
 
 export default function Keyboard() {
   const result = useSnapshot(state);
@@ -29,6 +33,7 @@ export default function Keyboard() {
       <Field label="Spelling" href="/settings/spelling">{spellingLabel(settings)}</Field>
       <Field label="Skin tone" href="/settings/skin-tone">{skinToneLabel(settings)}</Field>
       <Field label="Your words" href="/settings/data">{wordsLabel(settings)}</Field>
+      <Field label="Your details" href="/settings/details">{detailsLabel(settings)}</Field>
     </Section>
     <Section title="Swipe typing">
       <Toggle label="Swipe typing" value={settings.swipeTyping}

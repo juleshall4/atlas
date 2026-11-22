@@ -47,6 +47,8 @@ export type State = {
   dark: boolean;
   words: { word: string; description: string }[];
   blockedWords: string[];
+  /** Your details, which the strip offers in form fields that ask for them. */
+  details: Details;
   /** Fn and a letter open that letter's app. */
   openApps: boolean;
   /** Apps from shortcuts open with Android's animation. Off, they show at once. */
@@ -64,6 +66,8 @@ export type State = {
   /** The adb command that lets Atlas tune calls, or null when it has been run. */
   callsCommand: string | null;
 };
+
+export type Details = { firstName: string; lastName: string; emails: string[]; phone: string };
 
 export type Shortcut = { letter: string; app: string; name: string };
 
@@ -119,6 +123,15 @@ export async function blockWord(word: string) {
 export async function unblockWord(word: string) {
   try {
     await atlas("unblockWord", { word });
+  } finally {
+    await state.refresh();
+  }
+}
+
+/** Saves Your details. A rejected change, such as a 4th email address, leaves them as they were. */
+export async function saveDetails(details: Details) {
+  try {
+    await atlas("details", details);
   } finally {
     await state.refresh();
   }

@@ -71,6 +71,9 @@ class AtlasIme : InputMethodService() {
     private var emoji: EmojiPages? = null
     private var emojiSearch: EmojiSearch? = null
     private var field = Field.None
+    private var details = Details.Saved("", "", emptyList(), "")
+    /** The words the strip shows, kept for a strip that is made later. */
+    private var shown = emptyList<String>()
     private var editing = false
     private var typedInField = false
     private var fieldStartedAt = 0L
@@ -169,7 +172,12 @@ class AtlasIme : InputMethodService() {
             { delay, action -> main.postDelayed(action, delay) })
         composer = Composer(editor, EngineWords(SwipeTyping.get(this)),
             { delay, action -> main.postDelayed(action, delay) }, ::clearSettlements,
-            { TypingSettings.autoCapitalise(this) }, { TypingSettings.autoPunctuation(this) }) { strip?.words = it }
+            { TypingSettings.autoCapitalise(this) }, { TypingSettings.autoPunctuation(this) },
+            { kind -> details.values(kind) }) { words ->
+            shown = words
+            strip?.details = composer.showingDetails
+            strip?.words = words
+        }
         // The firmware hands touchpad events to the topmost window titled "InputMethod", which is this
         // keyboard's window. They arrive at the window, not at any view, so catch them there.
         val window = window.window!!
@@ -210,6 +218,9 @@ class AtlasIme : InputMethodService() {
         ::symbol, ::pickEmoji).also {
         strip = it
         it.emoji = emoji
+        // The first field can offer words before this view exists, such as your email addresses.
+        it.details = composer.showingDetails
+        it.words = shown
         it.showSuggestions = showSuggestions()
         showModifiers()
     }
@@ -232,7 +243,8 @@ class AtlasIme : InputMethodService() {
             typedInField = false
             fieldStartedAt = SystemClock.uptimeMillis()
         }
-        field = if (editing) Field.of(info.inputType, info.imeOptions) else Field.None
+        field = if (editing) Field.of(info.inputType, info.imeOptions, info.hintText) else Field.None
+        details = Details.saved(this)
         inLauncher = editing && info.packageName == launcherPackage()
         contact.releaseKeys()
         clearSettlements()
@@ -269,8 +281,10 @@ class AtlasIme : InputMethodService() {
     }
 
     // Launchers like Niagara keep a search field focused on the home screen, where the bar only gets in the way.
-    // Password, email and number fields get no suggestions, so the bar would only be an empty strip.
-    private fun showSuggestions() = TypingSettings.suggestionBar(this) && !inLauncher && field.suggestions
+    // Password, email and number fields get no suggestions, so the bar would only be an empty strip,
+    // unless the field asks for one of Your details.
+    private fun showSuggestions() = TypingSettings.suggestionBar(this) && !inLauncher
+        && (field.suggestions || field.detail?.let { details.values(it).isNotEmpty() } == true)
 
     private fun launcherPackage(): String? {
         val home = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
