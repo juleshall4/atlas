@@ -177,6 +177,7 @@ class AtlasIme : InputMethodService() {
             shown = words
             strip?.details = composer.showingDetails
             strip?.words = words
+            strip?.showSuggestions = showSuggestions()
         }
         // The firmware hands touchpad events to the topmost window titled "InputMethod", which is this
         // keyboard's window. They arrive at the window, not at any view, so catch them there.
@@ -286,8 +287,10 @@ class AtlasIme : InputMethodService() {
     // Launchers like Niagara keep a search field focused on the home screen, where the bar only gets in the way.
     // Password, email and number fields get no suggestions, so the bar would only be an empty strip,
     // unless the field asks for one of Your details.
-    private fun showSuggestions() = TypingSettings.suggestionBar(this) && !inLauncher
+    private fun showSuggestions() = !inLauncher && (TypingSettings.suggestionBar(this)
         && (field.suggestions || field.detail?.let { details.values(it).isNotEmpty() } == true)
+        // With the bar turned off, your details still show while they match, as Alt's symbols do.
+        || composer.showingDetails && shown.isNotEmpty())
 
     private fun launcherPackage(): String? {
         val home = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
