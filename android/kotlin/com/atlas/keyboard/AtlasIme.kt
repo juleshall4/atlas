@@ -244,6 +244,9 @@ class AtlasIme : InputMethodService() {
             fieldStartedAt = SystemClock.uptimeMillis()
         }
         field = if (editing) Field.of(info.inputType, info.imeOptions, info.hintText) else Field.None
+        // Typing your details into Atlas shows no suggestion bar and teaches nothing.
+        if (info.packageName == packageName && field.detail != null)
+            field = field.copy(suggestions = false, learning = false, detail = null)
         details = Details.saved(this)
         inLauncher = editing && info.packageName == launcherPackage()
         contact.releaseKeys()
