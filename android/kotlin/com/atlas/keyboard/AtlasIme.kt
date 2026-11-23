@@ -71,7 +71,7 @@ class AtlasIme : InputMethodService() {
     private var emoji: EmojiPages? = null
     private var emojiSearch: EmojiSearch? = null
     private var field = Field.None
-    private var details = Details.Saved("", "", emptyList(), "")
+    private var details = Details.Saved(emptyList(), "")
     /** The words the strip shows, kept for a strip that is made later. */
     private var shown = emptyList<String>()
     private var editing = false

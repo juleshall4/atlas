@@ -9,8 +9,8 @@ import { tapKeysLabel } from "./tap-keys";
 import { vibrationLabel } from "./vibration";
 
 const wordsLabel = ({ words }: State) => words.length === 1 ? "1 word" : `${words.length} words`;
-const detailsLabel = ({ details: { firstName, lastName, emails, phone } }: State) => {
-  const saved = [firstName, lastName, phone].filter(Boolean).length + emails.length;
+const detailsLabel = ({ details: { emails, phone } }: State) => {
+  const saved = emails.length + (phone ? 1 : 0);
   return saved === 0 ? "None" : saved === 1 ? "1 saved" : `${saved} saved`;
 };
 

@@ -173,8 +173,7 @@ private class AtlasAdapter(private val activity: MainActivity) : NativeAdapter, 
                 }
                 "details" -> {
                     val emails = data.getJSONArray("emails")
-                    Details.save(activity, Details.Saved(data.getString("firstName"), data.getString("lastName"),
-                        List(emails.length(), emails::getString), data.getString("phone")))
+                    Details.save(activity, Details.Saved(List(emails.length(), emails::getString), data.getString("phone")))
                     "null"
                 }
                 "clearWords" -> {
@@ -351,8 +350,7 @@ private class AtlasAdapter(private val activity: MainActivity) : NativeAdapter, 
             .put("dark", TypingSettings.dark(activity))
             .put("words", words)
             .put("blockedWords", JSONArray(typing.blockedWords().toList()))
-            .put("details", JSONObject().put("firstName", details.firstName).put("lastName", details.lastName)
-                .put("emails", JSONArray(details.emails)).put("phone", details.phone))
+            .put("details", JSONObject().put("emails", JSONArray(details.emails)).put("phone", details.phone))
             .put("openApps", AppShortcuts.enabled(activity))
             .put("shortcutAnimation", AppShortcuts.animation(activity))
             .put("actions", JSONArray(TypingSettings.actions(activity).toList()))

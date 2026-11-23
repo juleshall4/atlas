@@ -67,7 +67,7 @@ export type State = {
   callsCommand: string | null;
 };
 
-export type Details = { firstName: string; lastName: string; emails: string[]; phone: string };
+export type Details = { emails: string[]; phone: string };
 
 export type Shortcut = { letter: string; app: string; name: string };
 

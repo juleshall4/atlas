@@ -7,7 +7,7 @@ const MAX_EMAILS = 3;
 
 const subtitle = "Suggested when a form asks for them.";
 
-type Detail = "firstName" | "lastName" | "phone" | "email";
+type Detail = "phone" | "email";
 
 export default function YourDetails() {
   const result = useSnapshot(state);
@@ -29,28 +29,20 @@ function DetailList({ details }: { details: Details }) {
         if (details.emails.some(email => email.toLowerCase() === text.toLowerCase())) return setError("You have already added this email address");
         await saveDetails({ ...details, emails: [...details.emails, text] });
       }
-    } else if (editing && text !== details[editing]) await saveDetails({ ...details, [editing]: text });
+    } else if (editing && text !== details.phone) await saveDetails({ ...details, phone: text });
     setEditing(undefined);
   });
   const start = (detail: Detail) => {
-    setValue(detail === "email" ? "" : details[detail]);
+    setValue(detail === "email" ? "" : details.phone);
     setError(undefined);
     setEditing(detail);
   };
   // Drawn like the row it replaces and at its height, so nothing below moves.
   const input = (placeholder: string) => <TextInput value={value} placeholder={placeholder}
     onChange={text => { setValue(text); setError(undefined); }} onSubmit={text => save.run(text)} onBlur={text => save.run(text)}
-    action="done" autoFocus autoCapitalise={editing === "firstName" || editing === "lastName"} error={error}
+    action="done" autoFocus autoCapitalise={false} error={error}
     style={{ border: "none", paddingX: 0, paddingY: 0, minHeight: 46, fontSize: 30, placeholderColour: "muted" }} />;
-  const field = (detail: Exclude<Detail, "email">, label: string) => editing === detail
-    ? input(label)
-    // The press sits on a Stack because a pressable Field draws an arrow, and this opens no page.
-    : <Stack onPress={() => start(detail)}><Field label={label}>{details[detail] || "None"}</Field></Stack>;
   return <Screen title="Your details" subtitle={subtitle}>
-    <Section title="Name">
-      {field("firstName", "First name")}
-      {field("lastName", "Last name")}
-    </Section>
     <Section title="Email addresses">
       {details.emails.map(email => <Row key={email} title={email}
         endAction={{ icon: close, onPress: () => remove.run({ ...details, emails: details.emails.filter(other => other !== email) }) }} />)}
@@ -59,7 +51,10 @@ function DetailList({ details }: { details: Details }) {
         : <Row title="Add email address" endIcon={add} onPress={() => start("email")} />)}
     </Section>
     <Section title="Phone">
-      {field("phone", "Phone number")}
+      {editing === "phone"
+        ? input("Phone number")
+        // The press sits on a Stack because a pressable Field draws an arrow, and this opens no page.
+        : <Stack onPress={() => start("phone")}><Field label="Phone number">{details.phone || "None"}</Field></Stack>}
     </Section>
   </Screen>;
 }

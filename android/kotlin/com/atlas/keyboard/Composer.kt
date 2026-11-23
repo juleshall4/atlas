@@ -1118,7 +1118,7 @@ class Composer(
         checkLookAlike()
         field.detail?.let { detail ->
             val matches = if (after.isEmpty()) Details.matches(details(detail), before) else emptyList()
-            // A name field that matches nothing still gets word suggestions.
+            // A text field labelled as a phone number that matches nothing still gets word suggestions.
             if (matches.isNotEmpty() || !field.suggestions) {
                 composition = Composition.Detail(anchor, matches)
                 show(matches)
