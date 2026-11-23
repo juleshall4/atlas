@@ -42,7 +42,7 @@ export const guide: { title: string; rows: GuideRow[] }[] = [
         terms: ["emojis", "emoticons", "smiley", "smileys", "faces", "emoji keyboard", "hearts", "thumbs up", "stickers", "reactions", "icons", "pictures", "sym key"] },
       { title: "Find an emoji", text: "Push Sym, then type a word, for example \"pizza\". The strip shows the emoji that match. Push Enter to type the first emoji, or touch an emoji. Push Sym to stop. If no emoji match, the space bar types your words as text.",
         terms: ["emoji search", "search emoji", "find emoji", "look up emoji", "type emoji name", "emoji name", "sym and type", "no emoji found"] },
-      { title: "Skin tone", text: "To change the skin tone of emoji with hands and people, open Keyboard, then Skin tone.",
+      { title: "Emoji skin tone", text: "To change the skin tone of emoji with hands and people, open Keyboard, then Emoji skin tone.",
         terms: ["skin colour", "skin color", "emoji colour", "emoji color", "hand colour", "dark skin", "light skin", "brown", "yellow emoji", "fitzpatrick"] },
       { title: "Light or dark colours", text: "Open Display, then Appearance. Select Light, Dark or System. System uses the dark theme setting of your phone. The suggestion bar changes too.",
         terms: ["light mode", "dark mode", "dark theme", "light theme", "night mode", "white background", "black background", "theme", "colours", "colors", "brightness"] },

@@ -13,7 +13,7 @@ const tones: { value: SkinTone; label: string }[] = [
 export const skinToneLabel = ({ skinTone }: State) => tones.find(tone => tone.value === skinTone)?.label ?? tones[0].label;
 
 export default function SkinTonePage() {
-  return <ChoicePage title="Skin tone" subtitle="The emoji with hands and people show this skin tone."
+  return <ChoicePage title="Emoji skin tone" subtitle="The emoji with hands and people show this skin tone."
     options={tones}
     read={({ skinTone }) => skinTone}
     write={skinTone => ({ skinTone })} />;

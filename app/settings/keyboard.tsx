@@ -31,7 +31,7 @@ export default function Keyboard() {
       <Toggle label="Auto-punctuation" value={settings.autoPunctuation}
         onChange={autoPunctuation => save.run({ autoPunctuation })} />
       <Field label="Spelling" href="/settings/spelling">{spellingLabel(settings)}</Field>
-      <Field label="Skin tone" href="/settings/skin-tone">{skinToneLabel(settings)}</Field>
+      <Field label="Emoji skin tone" href="/settings/skin-tone">{skinToneLabel(settings)}</Field>
       <Field label="Your words" href="/settings/data">{wordsLabel(settings)}</Field>
       <Field label="Your details" href="/settings/details">{detailsLabel(settings)}</Field>
     </Section>
